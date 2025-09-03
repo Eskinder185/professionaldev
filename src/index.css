@@ -1,0 +1,7 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* You can add your global styles below */
+:root { --app-bg: #0b0f17; }
+body { background: var(--app-bg); }
