@@ -3,6 +3,7 @@
 A simple, accessible site that guides users through the Professional Development cycle:
 **Self‑Assess → Plan → Act → Reflect**.
 
+This is going to be a free tool to help everyone with their quest on finding a job.
 ## Quick Start
 ```bash
 npm install
