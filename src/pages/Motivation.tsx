@@ -165,8 +165,8 @@ export default function Motivation() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 space-y-8">
-      <h1 className="text-3xl font-bold">Motivation Hub</h1>
+    <div className="mx-auto max-w-5xl px-4 py-10 space-y-8 fade-in-up">
+      <h1 className="text-3xl font-bold gradient-text">Motivation Hub</h1>
 
       {/* Row: Streak and Quote of the Day */}
       <div className="grid md:grid-cols-2 gap-6">

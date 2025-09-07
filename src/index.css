@@ -1,7 +1,65 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* You can add your global styles below */
-:root { --app-bg: #0b0f17; }
-body { background: var(--app-bg); }
+/* Global CSS variables for the modern orange‑blue‑purple palette */
+:root {
+  --accent1: #f97316; /* orange */
+  --accent2: #3b82f6; /* blue */
+  --accent3: #a855f7; /* purple */
+}
+
+/* Light neutral body so the colours pop */
+body {
+  background-color: #f9fafb;
+  color: #1f2937;
+  min-height: 100vh;
+}
+
+/* Gradient text utility using the accent colours */
+.gradient-text {
+  @apply bg-gradient-to-r from-primary via-secondary to-tertiary text-transparent bg-clip-text;
+}
+
+/* Link styling */
+.link-accent {
+  @apply text-primary underline;
+}
+.link-accent:hover {
+  @apply text-secondary;
+}
+
+/* Fade‑in helpers using Tailwind animations */
+.fade-in-up {
+  @apply animate-fade-in-up;
+}
+.fade-in {
+  @apply animate-fade-in;
+}
+
+/* Card styling with hover lift */
+.card {
+  @apply border border-gray-200 rounded-xl bg-white shadow-sm;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  @apply shadow-md;
+}
+
+/* Full‑screen animated gradient background */
+.bg-gradient-animation {
+  background: linear-gradient(130deg,
+    var(--accent1),
+    var(--accent2),
+    var(--accent3),
+    var(--accent2));
+  background-size: 200% 200%;
+  animation: gradient-animation 15s ease infinite;
+}
+
+@keyframes gradient-animation {
+  0%   { background-position: 0% 50%;   }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%;   }
+}

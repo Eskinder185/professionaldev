@@ -26,13 +26,13 @@ import Resources from "./pages/Resources/Index";
 import Community from "./pages/Community";
 import Motivation from "./pages/Motivation";
 
-// Layout components
 import NavBar from "./components/NavBar";
+import AnimatedBackground from "./components/AnimatedBackground";
 
-function App() {
+export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top navigation */}
+      <AnimatedBackground />    {/* animated gradient */}
       <NavBar />
 
       <main className="flex-grow p-6">
@@ -40,36 +40,36 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
 
-          {/* NEW SECTION ROUTES */}
+          {/* Self-Assessment routes */}
           <Route path="/self-assessment" element={<SelfAssessment />} />
-          {/* Self‑Assessment sub-pages */}
           <Route path="/self-assessment/strengths" element={<StrengthsQuiz />} />
           <Route path="/self-assessment/values" element={<ValuesWorksheet />} />
           <Route path="/self-assessment/interests" element={<InterestsQuiz />} />
           <Route path="/self-assessment/journal" element={<Journal />} />
+
+          {/* Career Tools routes */}
           <Route path="/career-tools" element={<CareerTools />} />
-          {/* Career Tools sub-pages */}
           <Route path="/career-tools/resume-linkedin" element={<ResumeLinkedIn />} />
           <Route path="/career-tools/star" element={<InterviewSTAR />} />
           <Route path="/career-tools/elevator" element={<ElevatorPitch />} />
           <Route path="/career-tools/portfolio" element={<PortfolioGitHub />} />
+
+          {/* Resource routes */}
           <Route path="/resources" element={<Resources />} />
-          {/* Resources sub-pages */}
           <Route path="/resources/roadmaps" element={<Roadmaps />} />
           <Route path="/resources/trackers" element={<Trackers />} />
           <Route path="/resources/productivity" element={<Productivity />} />
+
           <Route path="/community" element={<Community />} />
           <Route path="/motivation" element={<Motivation />} />
-
           <Route path="/contact" element={<Contact />} />
         </Routes>
       </main>
 
-      <footer className="bg-gray-100 p-4 text-center text-gray-600">
-        © 2025 PD Co‑Pilot
+      {/* Updated footer text */}
+      <footer className="bg-white/50 backdrop-blur p-4 text-center text-gray-600">
+        © 2025 Roadmap to Role
       </footer>
     </div>
   );
 }
-
-export default App;

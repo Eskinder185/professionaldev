@@ -336,8 +336,8 @@ function Networking() {
 export default function Community() {
   const [tab, setTab] = useState<"Stories" | "Mentors" | "Q&A" | "Networking">("Stories");
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="text-3xl font-bold mb-4">Community</h1>
+    <div className="mx-auto max-w-6xl px-4 py-10 fade-in-up">
+      <h1 className="text-3xl font-bold mb-4 gradient-text">Community</h1>
       <p className="text-gray-600 mb-6 max-w-2xl">
         Connect with peers, find mentors, ask questions, and practice networking.
       </p>
