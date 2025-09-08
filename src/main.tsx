@@ -6,7 +6,8 @@ import './styles/tailwind.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
+    {/* Use Vite's BASE_URL, which becomes '/professionaldev/' in prod */}
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <App />
     </BrowserRouter>
   </React.StrictMode>
