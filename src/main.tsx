@@ -1,14 +1,20 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import App from './App'
-import './styles/tailwind.css'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import App from "./App";
+import { ThemeProvider } from "./theme/ThemeProvider";
+import { runMigrations } from "./utils/migrations";
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+import "./styles/tailwind.css";
+
+runMigrations();
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    {/* Use Vite's BASE_URL, which becomes '/professionaldev/' in prod */}
     <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <App />
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>
-)
+);

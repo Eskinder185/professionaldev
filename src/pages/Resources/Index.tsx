@@ -1,20 +1,44 @@
-import { Link } from "react-router-dom";
+import React from "react";
+import Tile from "../../components/ui/Tile";
 
-export default function Resources(){
+export default function ResourcesIndex() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 space-y-6 fade-in-up">
-      <h1 className="text-2xl font-bold gradient-text">Resources</h1>
-      <ul className="list-disc pl-6 text-gray-700 space-y-2">
-        <li>
-          <Link className="link-accent" to="/resources/roadmaps">Certifications & Learning</Link>
-        </li>
-        <li>
-          <Link className="link-accent" to="/resources/trackers">Skill & Job Trackers</Link>
-        </li>
-        <li>
-          <Link className="link-accent" to="/resources/productivity">Time & Productivity</Link>
-        </li>
-      </ul>
+    <div className="space-y-6">
+      <header className="surface-muted p-6 fade-up">
+        <h1 className="brand-heading text-2xl font-semibold">Resources</h1>
+        <p>Stay consistent and track momentum.</p>
+      </header>
+
+      <div className="grid gap-6 md:grid-cols-3">
+        <Tile
+          title="Certifications & Learning"
+          desc="Sequenced study paths, weekly plans, and practice links."
+          tags={["roadmaps", "weekly plan"]}
+          to="/resources/certs"
+          variant="purple"
+        />
+        <Tile
+          title="Skill & Job Trackers"
+          desc="Log apps, OAs, interviews, and learning streaks. CSV import/export."
+          tags={["CRM", "CSV", "reminders"]}
+          to="/resources/trackers"
+          variant="blue"
+        />
+        <Tile
+          title="Time & Productivity"
+          desc="Pomodoro with break ideas + PWA for commutes."
+          tags={["pomodoro", "PWA", "focus"]}
+          href="https://eskinder185.github.io/tasktracker/"
+          variant="orange"
+        />
+        <Tile
+          title="Job Sites"
+          desc="Curated job boards with short descriptions and links."
+          tags={["search", "remote", "tech"]}
+          to="/Resources/JobSites"
+          variant="blue"
+        />
+      </div>
     </div>
-  )
+  );
 }

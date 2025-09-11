@@ -2,64 +2,176 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom theme variables for orange‑blue‑purple palette */
+/* LIGHT (kept for toggle) */
 :root {
-  --accent1: #f97316; /* orange */
-  --accent2: #3b82f6; /* blue */
-  --accent3: #a855f7; /* purple */
+  --bg-start: #fff7ed;
+  --bg-end:   #eef2ff;
+
+  --accent-orange: #fb923c;
+  --accent-blue:   #60a5fa;
+  --accent-purple: #c084fc;
+
+  /* text + surfaces for light */
+  --text-body:  #1f2937;     /* slate-800 */
+  --text-muted: #334155cc;   /* slate-700 w/ alpha */
+  --text-strong:#0b1020;     /* near-black */
+
+  --surface-1: rgba(255,255,255,0.88);
+  --surface-2: rgba(255,255,255,0.72);
+  --stroke:    rgba(0,0,0,0.10);
 }
 
-/* Light neutral body so colours pop */
-body {
-  background-color: #f9fafb;
-  color: #1f2937;
-  min-height: 100vh;
+/* DARK (default) */
+html.dark {
+  --bg-start: #0b1020;  /* deep navy */
+  --bg-end:   #11162e;
+
+  --accent-orange: #f59e0b;
+  --accent-blue:   #639bff;  /* brighter blue for readability */
+  --accent-purple: #a78bfa;  /* readable violet */
+
+  /* BRANDED TEXT HUES (all pages) */
+  --text-body:  #cfd4ff;     /* soft lavender/blue */
+  --text-muted: #9fb0ffcc;   /* dimmer blue-violet */
+  --text-strong:#ffffff;     /* headings/strong */
+
+  --surface-1: rgba(12,16,28,0.58);
+  --surface-2: rgba(12,16,28,0.42);
+  --stroke:    rgba(255,255,255,0.14);
 }
 
-/* Gradient text utility */
-.gradient-text {
-  @apply bg-gradient-to-r from-primary via-secondary to-tertiary text-transparent bg-clip-text;
+@layer base {
+  html, body, #root { height: 100%; }
+  body { color: var(--text-body); background: transparent; }
+  h1,h2,h3,h4 { color: var(--text-strong); }
+  p,li,small,span,div { color: var(--text-body); }
+  em, i, figcaption { color: var(--text-muted); }
+  a { color: var(--accent-blue); }
+  strong, b { color: var(--text-strong); }
 }
 
-/* Link styling */
-.link-accent {
-  @apply text-primary underline;
-}
-.link-accent:hover {
-  @apply text-secondary;
-}
-
-/* Fade-in helpers */
-.fade-in-up {
-  @apply animate-fade-in-up;
-}
-.fade-in {
-  @apply animate-fade-in;
+/* Headings get a subtle brand gradient (purple→blue) */
+@layer base {
+  .brand-heading, h1, h2 {
+    background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 }
 
-/* Card styling */
-.card {
-  @apply border border-gray-200 rounded-xl bg-white shadow-sm;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.card:hover {
-  transform: translateY(-2px);
-  @apply shadow-md;
+/* Unified, readable surfaces (overlays/cards) */
+@layer utilities {
+  .surface {
+    background: var(--surface-1);
+    border: 1px solid var(--stroke);
+    @apply rounded-2xl backdrop-blur-md;
+  }
+  .surface-muted {
+    background: var(--surface-2);
+    border: 1px solid var(--stroke);
+    @apply rounded-2xl backdrop-blur;
+  }
+  /* Back-compat: map any old .glass cards */
+  .glass { @apply surface; }
+
+  .chip {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs;
+    background: var(--surface-2);
+    border: 1px solid var(--stroke);
+    color: var(--text-body);
+  }
 }
 
-/* Animated full-screen gradient */
-.bg-gradient-animation {
-  background: linear-gradient(130deg,
-    var(--accent1),
-    var(--accent2),
-    var(--accent3),
-    var(--accent2));
-  background-size: 200% 200%;
-  animation: gradient-animation 15s ease infinite;
+/* Respect reduced motion */
+@layer base {
+  @media (prefers-reduced-motion: reduce) { .anim { animation: none !important; } }
 }
 
-@keyframes gradient-animation {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+@layer utilities {
+  /* Entrance animation */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px) scale(.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .fade-up { animation: fadeUp .45s ease both; }
+
+  /* Card hover glow (subtle, colorizable) */
+  .hover-glow { position: relative; }
+  .hover-glow::before {
+    --glow: var(--accent-blue);
+    content: ""; position: absolute; inset: -2px; border-radius: inherit; z-index: -1;
+    background:
+      radial-gradient(400px 220px at 12% 8%, color-mix(in oklab, var(--glow) 28%, transparent), transparent 45%),
+      radial-gradient(420px 220px at 88% 16%, color-mix(in oklab, var(--glow) 22%, transparent), transparent 48%);
+    filter: blur(16px); opacity: 0; transition: opacity .25s ease, filter .25s ease;
+  }
+  .hover-glow:hover::before { opacity: .35; filter: blur(12px); }
+
+  /* Animated gradient buttons */
+  @keyframes gradientShift {
+    0% { background-position: 0% 50% }
+    50% { background-position: 100% 50% }
+    100% { background-position: 0% 50% }
+  }
+  .btn-anim {
+    --from: var(--accent-purple);
+    --mid:  var(--accent-blue);
+    --to:   var(--accent-orange);
+    background: linear-gradient(90deg, var(--from), var(--mid), var(--to));
+    background-size: 200% 200%;
+    color: #fff !important;
+    border-color: transparent !important;
+    animation: gradientShift 6s ease infinite;
+    box-shadow: 0 8px 24px rgba(0,0,0,.15), 0 0 0 1px rgba(255,255,255,.06) inset;
+  }
+  .btn-anim:active { transform: translateY(1px); }
+
+  /* Variants (choose per card) */
+  .btn-or   { --from: #ffb36b; --mid: #fb923c; --to: #f59e0b; }
+  .btn-blue { --from: #6aa7ff; --mid: #60a5fa; --to: #3b82f6; }
+  .btn-purple { --from: #c6a5ff; --mid: #a78bfa; --to: #8b5cf6; }
+}
+
+@layer utilities {
+  /* Unified overlays */
+  .surface { background: var(--surface-1); border: 1px solid var(--stroke); @apply rounded-2xl backdrop-blur-md; }
+  .surface-muted { background: var(--surface-2); border: 1px solid var(--stroke); @apply rounded-2xl backdrop-blur; }
+  .glass { @apply surface; } /* back-compat */
+}
+
+@layer utilities {
+  .input {
+    @apply w-full rounded-xl border px-3 py-2 outline-none;
+    background: var(--surface-1); border-color: var(--stroke);
+    color: var(--text-body);
+  }
+  .textarea {
+    @apply w-full rounded-xl border px-3 py-2 outline-none;
+    background: var(--surface-1); border-color: var(--stroke);
+    color: var(--text-body); min-height: 8rem;
+  }
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-xl px-3 py-2 border transition;
+    background: var(--surface-2); border-color: var(--stroke); color: var(--text-strong);
+  }
+  .btn-primary {
+    background: linear-gradient(90deg,var(--accent-purple),var(--accent-blue));
+    color:#fff; border-color: transparent;
+  }
+}
+
+/* Toned-down hover glow to avoid white fog */
+@layer utilities {
+  .card-glow { position: relative; }
+  .card-glow::after {
+    content:""; position:absolute; inset:-1px; border-radius:inherit; z-index:-1;
+    background:
+      radial-gradient(600px 240px at 12% 12%, color-mix(in oklab, var(--accent-purple) 28%, transparent), transparent 45%),
+      radial-gradient(600px 240px at 85% 18%, color-mix(in oklab, var(--accent-blue) 24%, transparent), transparent 45%),
+      radial-gradient(600px 240px at 50% 90%, color-mix(in oklab, var(--accent-orange) 22%, transparent), transparent 50%);
+    filter: blur(14px);
+    opacity:.08;
+    transition:opacity .2s ease;
+  }
+  .card-glow:hover::after { opacity:.16; }
 }
