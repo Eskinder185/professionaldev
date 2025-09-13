@@ -3,11 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PD Co‑Pilot</title>
-    <script type="module" crossorigin src="/professionaldev/assets/index-DVoa_1l3.js"></script>
-    <link rel="stylesheet" crossorigin href="/professionaldev/assets/index-BrhWkfQ7.css">
+    <title>Roadmap to Role</title>
+    <script>
+      (function () {
+        try {
+          var k = "pd-theme";
+          var t = localStorage.getItem(k);
+          if (!t) t = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+          if (t === "light") document.documentElement.classList.add("light");
+        } catch (e) {}
+      })();
+    </script>
+    <script type="module" crossorigin src="/professionaldev/assets/index-XPoMG9Ym.js"></script>
+    <link rel="stylesheet" crossorigin href="/professionaldev/assets/index-2Z8VciQX.css">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"></div>
   </body>
 </html>
