@@ -1,15 +1,5 @@
-import React from "react";
+import React, { PropsWithChildren } from "react";
 
-export default function Card({
-  children,
-  className = ""
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={`glass card-glow ${className}`}>
-      {children}
-    </div>
-  );
+export default function Card({ children, className="" }: PropsWithChildren<{className?:string}>) {
+  return <div className={`surface p-5 hover-glow ${className}`}>{children}</div>;
 }

@@ -19,14 +19,16 @@ function IconMoon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function ThemeToggle() {
   const { theme, toggle } = useTheme();
+  const isLight = theme === "light";
   return (
     <button
       onClick={toggle}
-      aria-label="Toggle theme"
-      className="glass px-3 py-1.5 text-sm inline-flex items-center gap-2 hover:opacity-90 transition"
+      aria-pressed={isLight}
+      title={isLight ? "Switch to Dark" : "Switch to Light"}
+      className="btn btn-anim btn-pink"
     >
-      {theme === "dark" ? <IconSun /> : <IconMoon />}
-      <span className="hidden sm:inline">{theme === "dark" ? "Light" : "Dark"}</span>
+      {isLight ? <IconMoon /> : <IconSun />}
+      {isLight ? "Dark" : "Light"}
     </button>
   );
 }

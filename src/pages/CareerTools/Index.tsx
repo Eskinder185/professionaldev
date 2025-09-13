@@ -1,24 +1,44 @@
 import React from "react";
-import SectionHeader from "../../components/SectionHeader";
 import FeatureSection from "../../components/FeatureSection";
 
 export default function CareerTools() {
   const items = [
     {
-      title: "Resume & LinkedIn",
-      blurb: "Polish your resume and profile with impact bullets and clean structure.",
+      title: "Résumé Grader",
+      blurb: "Upload or paste your résumé for an ATS-style score and suggestions.",
       href: "/career-tools/resume-grader",
       accent: "blue",
-      tags: ["structure", "impact", "profile"],
-      details: ["Section order & formatting tips", "Strong action verbs", "Quantify outcomes"],
+      tags: ["ATS", "metrics", "impact"],
+      details: [
+        "Section order & formatting tips",
+        "Strong action verbs",
+        "Quantify outcomes",
+        "Instant feedback on clarity and impact"
+      ],
     },
     {
-      title: "STAR/CARL Stories",
-      blurb: "Craft Situation/Task/Action/Result stories recruiters remember (or CARL).",
-      href: "/career-tools/stories",
+      title: "LinkedIn Guide",
+      blurb: "Exact formatting for headline, About, Experience, Featured, and settings.",
+      href: "/career-tools/linkedin",
       accent: "purple",
-      tags: ["behavioral", "stories", "metrics"],
-      details: ["Guided prompts", "Concise outcomes", "Reusable templates"],
+      tags: ["branding", "profile", "networking"],
+      details: [],
+    },
+    {
+      title: "GitHub Profile Guide",
+      blurb: "Set up the special profile repo, pin projects, and write clean READMEs.",
+      href: "/career-tools/github",
+      accent: "orange",
+      tags: ["profile README", "pinned repos", "badges"],
+      details: [],
+    },
+    {
+      title: "Behavioral Q&A (STAR/CARL)",
+      blurb: "Practice real questions and craft concise, metric-driven stories.",
+      href: "/career-tools/behavioral",
+      accent: "purple",
+      tags: ["STAR", "CARL", "prep"],
+      details: ["18 common questions", "Live preview", "Video recording", "Autosave drafts"],
     },
     {
       title: "Elevator pitch studio",
@@ -39,10 +59,16 @@ export default function CareerTools() {
   ] as const;
 
   return (
-    <div className="relative">
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-10">
-        <SectionHeader title="Career Tools" subtitle="Guides and helpers to present your best work." />
-        <FeatureSection heading="" items={items as any} />
+    <div className="space-y-6">
+      <header className="surface-muted p-6">
+        <h1 className="brand-heading text-2xl font-semibold">Career Tools</h1>
+        <p>Guides and helpers to present your best work.</p>
+      </header>
+
+      <div className="relative">
+        <div className="relative z-10 max-w-5xl mx-auto px-4 py-10">
+          <FeatureSection heading="" items={items as any} />
+        </div>
       </div>
     </div>
   );

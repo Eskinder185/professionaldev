@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { extractTextFromFile } from "../../utils/extractTextFromFile";
+import { extractTextFromFile, type Extracted } from "../../utils/extractTextFromFile";
 import { analyzeResume, type ResumeAnalysis } from "../../utils/analyzeResume";
 
 export default function ResumeGrader() {
@@ -14,10 +14,18 @@ export default function ResumeGrader() {
     try {
       setErr(undefined);
       setBusy(true);
-      const resumeText = file ? await extractTextFromFile(file) : text;
-      if (!resumeText.trim()) throw new Error("Provide a resume file or paste text.");
+      
+      let extracted: Extracted;
+      if (file) {
+        extracted = await extractTextFromFile(file);
+      } else if (text.trim()) {
+        extracted = { kind: "txt" as const, text: text };
+      } else {
+        throw new Error("Provide a resume file or paste text.");
+      }
+      
       const kws = keywords.split(",").map((s) => s.trim()).filter(Boolean);
-      const res = analyzeResume(resumeText, kws);
+      const res = analyzeResume(extracted, kws);
       setAnalysis(res);
     } catch (e: any) {
       setErr(e?.message || "Failed to analyze");
@@ -41,7 +49,7 @@ export default function ResumeGrader() {
           <textarea className="textarea" placeholder="Paste résumé text…" value={text} onChange={(e) => setText(e.target.value)} />
           <label className="block text-sm">Target keywords (comma-separated)</label>
           <input className="input" placeholder="e.g. React, AWS, Node, CI/CD" value={keywords} onChange={(e) => setKeywords(e.target.value)} />
-          <button className="btn btn-primary" onClick={onAnalyze} disabled={busy}>
+          <button className="btn btn-anim btn-pink" onClick={onAnalyze} disabled={busy}>
             {busy ? "Analyzing…" : "Analyze résumé"}
           </button>
           {err && <div className="text-red-400 text-sm">{err}</div>}
@@ -73,6 +81,32 @@ export default function ResumeGrader() {
                   ))}
                 </ul>
               </div>
+              {analysis.typography.available && (
+                <div>
+                  <h3 className="font-semibold mb-2">Typography Analysis</h3>
+                  <div className="space-y-2">
+                    {analysis.typography.bodySizePt && (
+                      <div>Body text size: ~{analysis.typography.bodySizePt}pt</div>
+                    )}
+                    {analysis.typography.lineSpacingRatio && (
+                      <div>Line spacing: {analysis.typography.lineSpacingRatio}x</div>
+                    )}
+                    {analysis.typography.headingSizesPt?.length && (
+                      <div>Heading sizes: {analysis.typography.headingSizesPt.map(s => `${s}pt`).join(", ")}</div>
+                    )}
+                    {analysis.typography.fontCandidates?.length && (
+                      <div className="text-sm opacity-80">Fonts: {analysis.typography.fontCandidates.join(", ")}</div>
+                    )}
+                    {analysis.typography.verdicts.length > 0 && (
+                      <ul className="list-disc pl-5 text-sm opacity-80">
+                        {analysis.typography.verdicts.map((v, i) => (
+                          <li key={i}>{v}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="text-xs opacity-70">
                 Detected: {analysis.detected.emails[0] ? "email ✓" : "email ✗"} · {analysis.detected.links.length ? "links ✓" : "links ✗"} · {analysis.detected.words} words · {analysis.detected.bullets} bullets
               </div>
@@ -81,25 +115,6 @@ export default function ResumeGrader() {
         </div>
       </div>
 
-      <section className="surface p-5">
-        <h2 className="font-semibold">LinkedIn & GitHub organization (quick guide)</h2>
-        <div className="grid md:grid-cols-2 gap-4 mt-3">
-          <ul className="list-disc pl-5 space-y-1">
-            <li>
-              Headline = <b>Role</b> + key skills (e.g., “Frontend Developer · React · TypeScript”).
-            </li>
-            <li>Top link = portfolio or GitHub; feature best 3 posts/projects.</li>
-            <li>About = your elevator pitch + 3 bullets with metrics.</li>
-            <li>Add media to experience (demos, screenshots, PDFs).</li>
-          </ul>
-          <ul className="list-disc pl-5 space-y-1">
-            <li>GitHub: pin 6 repos (1–2 polished projects, 1 learning repo, 1 demo).</li>
-            <li>Each repo: clean README (what, why, how to run, screenshots).</li>
-            <li>Use semantic commits; archive noisy school repos.</li>
-            <li>Profile README: short bio + links (auto-update pinned badges).</li>
-          </ul>
-        </div>
-      </section>
     </div>
   );
 }

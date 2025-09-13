@@ -19,7 +19,7 @@ export default function InterviewSTAR(){
       </div>
       <div className="mt-4">
         <div className="text-sm text-gray-600 mb-1">Your answer:</div>
-        <div className="border rounded-xl p-3 bg-gray-50 min-h-[100px]">{result || "Fill all fields to preview."}</div>
+        <div className="surface-muted p-3 min-h-[100px]">{result || "Fill all fields to preview."}</div>
       </div>
     </div>
   )

@@ -20,10 +20,8 @@ export default function BackgroundConstellations() {
 
     function drawUnderlay() {
       const w = canvas.width / DPR, h = canvas.height / DPR;
-      const g = ctx.createRadialGradient(w * 0.5, h * 0.35, 0, w * 0.5, h * 0.6, Math.max(w, h) * 0.8);
-      g.addColorStop(0, "#0b1020");
-      g.addColorStop(1, "#101631");
-      ctx.fillStyle = g;
+      const bg = css.getPropertyValue("--bg").trim() || "#0b0f1a";
+      ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
     }
 
@@ -36,10 +34,9 @@ export default function BackgroundConstellations() {
     }));
 
     const css = getComputedStyle(document.documentElement);
-    const blue = css.getPropertyValue("--accent-blue").trim() || "#639bff";
-    const purple = css.getPropertyValue("--accent-purple").trim() || "#a78bfa";
-    const orange = css.getPropertyValue("--accent-orange").trim() || "#f59e0b";
-    const colors = [blue, purple, orange];
+    const star = css.getPropertyValue("--star").trim() || "#8fb3ff";
+    const link = css.getPropertyValue("--link").trim() || "#334b7e";
+    const colors = [star];
 
     let raf = 0;
     const R = 140;
@@ -55,7 +52,8 @@ export default function BackgroundConstellations() {
           const d2 = dx * dx + dy * dy;
           if (d2 < R * R) {
             const a = 1 - d2 / (R * R);
-            ctx.strokeStyle = `rgba(99,155,255,${0.22 * a})`;
+            ctx.strokeStyle = link;
+            ctx.globalAlpha = 0.22 * a;
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(pts[i].x, pts[i].y);

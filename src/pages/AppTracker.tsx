@@ -53,7 +53,7 @@ export default function AppTracker() {
       <h1 className="text-2xl font-bold">Application Tracker</h1>
       <p className="text-gray-600">Track applications, statuses, and notes. Import/export CSV. Data stays in your browser.</p>
 
-      <div className="p-4 rounded border border-gray-200 bg-white/70 backdrop-blur grid md:grid-cols-5 gap-2 items-end">
+      <div className="surface p-4 grid md:grid-cols-5 gap-2 items-end">
         <div className="md:col-span-1">
           <label className="block text-sm text-gray-600">Company</label>
           <input className="w-full rounded border border-gray-200 p-2" value={draft.company} onChange={(e)=>setDraft({...draft, company: e.target.value})} />
@@ -88,7 +88,7 @@ export default function AppTracker() {
         </label>
       </div>
 
-      <div className="p-4 rounded border border-gray-200 bg-white/70 backdrop-blur">
+      <div className="surface p-4">
         <div className="font-medium mb-2">Summary</div>
         <div className="flex flex-wrap gap-3 text-sm">
           {Object.entries(counts).map(([k,v]) => (

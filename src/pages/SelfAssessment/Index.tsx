@@ -1,5 +1,4 @@
 import React from "react";
-import SectionHeader from "../../components/SectionHeader";
 import FeatureSection from "../../components/FeatureSection";
 
 export default function SelfAssessment() {
@@ -21,7 +20,7 @@ export default function SelfAssessment() {
     {
       title: "Core Values Workshop",
       blurb:
-        "Rank your top 10 values, compare trade-offs, and craft a 2-line ‘job filter’ statement.",
+        "Rank your top 10 values, compare trade-offs, and craft a 2-line 'job filter' statement.",
       href: "/self/values",
       icon: "HeartHandshake",
       accent: "emerald",
@@ -29,7 +28,7 @@ export default function SelfAssessment() {
       details: [
         "Drag-to-rank cards (autosave)",
         "Conflict prompts: time vs money, freedom vs stability",
-        "Exports a ‘What I accept / What I avoid’ PDF",
+        "Exports a 'What I accept / What I avoid' PDF",
       ],
     },
     {
@@ -46,27 +45,19 @@ export default function SelfAssessment() {
         "Links into Roadmap milestones",
       ],
     },
-    {
-      title: "Journaling Studio",
-      blurb:
-        "Distraction-free notes with prompts, tags, and export to Markdown or PDF.",
-      href: "/self/journal",
-      icon: "NotebookPen",
-      accent: "purple",
-      tags: ["prompts", "tags", "export"],
-      details: [
-        "Daily prompts: win, blocker, next action",
-        "Search by tag; export to MD/PDF",
-        "Privacy: stored only in your browser",
-      ],
-    },
   ] as const;
 
   return (
-    <div className="relative">
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-10">
-        <SectionHeader title="Self-Assessment" subtitle="Know yourself → choose the right path." />
-        <FeatureSection heading="" items={items as any} />
+    <div className="space-y-6">
+      <header className="surface-muted p-6">
+        <h1 className="brand-heading text-2xl font-semibold">Self-Assessment</h1>
+        <p>Know yourself → choose the right path.</p>
+      </header>
+
+      <div className="relative">
+        <div className="relative z-10 max-w-5xl mx-auto px-4 py-10">
+          <FeatureSection heading="" items={items as any} />
+        </div>
       </div>
     </div>
   );

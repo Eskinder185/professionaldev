@@ -68,7 +68,7 @@ export default function TeleprompterRecorder({ script }: { script: string }) {
 
         <div className="mt-3 flex gap-2">
           {!recording ? (
-            <button className="btn btn-primary" onClick={startRecording}>
+            <button className="btn btn-anim btn-pink" onClick={startRecording}>
               Start recording
             </button>
           ) : (

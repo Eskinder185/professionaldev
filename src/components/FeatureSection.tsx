@@ -64,7 +64,7 @@ export default function FeatureSection({
             >
               <Link
                 to={it.href}
-                className={`block relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur`}
+                className={`block relative overflow-hidden surface p-5 hover-glow`}
               >
               {/* soft gradient wash */}
               <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${grad} opacity-0 group-hover:opacity-100 transition`} />
@@ -84,10 +84,7 @@ export default function FeatureSection({
                 {it.tags?.length ? (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {it.tags.map((t, i) => (
-                      <span
-                        key={i}
-                        className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-white/90"
-                      >
+                      <span key={i} className="chip">
                         {t}
                       </span>
                     ))}
@@ -106,9 +103,8 @@ export default function FeatureSection({
                 ) : null}
 
                 <div className="mt-4">
-                  <span className="inline-flex items-center gap-1 rounded-xl bg-white/10 px-3 py-1.5 text-sm font-medium border border-white/15 group-hover:bg-white/15">
-                    Open tool
-                    <ArrowRight className="h-4 w-4 transition -translate-x-0 group-hover:translate-x-0.5" />
+                  <span className="btn btn-anim btn-pink">
+                    Open tool →
                   </span>
                 </div>
               </div>

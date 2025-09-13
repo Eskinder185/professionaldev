@@ -28,10 +28,10 @@ export default function StoryBuilder() {
 
       <div className="surface p-5">
         <div className="flex gap-2 mb-4">
-          <button className={`btn ${mode === "STAR" ? "btn-primary" : ""}`} onClick={() => setMode("STAR")}>
+          <button className={`btn ${mode === "STAR" ? "btn-anim btn-pink" : ""}`} onClick={() => setMode("STAR")}>
             STAR
           </button>
-          <button className={`btn ${mode === "CARL" ? "btn-primary" : ""}`} onClick={() => setMode("CARL")}>
+          <button className={`btn ${mode === "CARL" ? "btn-anim btn-pink" : ""}`} onClick={() => setMode("CARL")}>
             CARL
           </button>
         </div>

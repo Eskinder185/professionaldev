@@ -2,7 +2,6 @@
 <Route path="/self-assessment/strengths" element={<StrengthsQuiz />} />
 <Route path="/self-assessment/values" element={<ValuesWorksheet />} />
 <Route path="/self-assessment/interests" element={<InterestsQuiz />} />
-<Route path="/self-assessment/journal" element={<Journal />} />
 
 <Route path="/career-tools/resume-linkedin" element={<ResumeLinkedIn />} />
 <Route path="/career-tools/star" element={<InterviewSTAR />} />

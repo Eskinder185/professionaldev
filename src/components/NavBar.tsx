@@ -36,12 +36,6 @@ export default function NavBar() {
           <NavLink to="/settings" className={linkClass}>
             Settings
           </NavLink>
-          <NavLink to="/community" className={linkClass}>
-            Community
-          </NavLink>
-          <NavLink to="/motivation" className={linkClass}>
-            Motivation
-          </NavLink>
           <NavLink to="/contact" className={linkClass}>
             Contact
           </NavLink>

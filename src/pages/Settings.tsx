@@ -71,7 +71,7 @@ export default function Settings() {
           </div>
           <button
             type="button"
-            className={`btn ${reduced ? 'btn-primary' : ''}`}
+            className={`btn ${reduced ? 'btn-anim btn-pink' : ''}`}
             aria-pressed={reduced}
             onClick={toggleReduced}
             onKeyDown={(e)=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggleReduced(); } }}

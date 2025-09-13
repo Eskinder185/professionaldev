@@ -62,7 +62,7 @@ export default function InterviewSim() {
       <h1 className="text-2xl font-bold">Mock Interview</h1>
       <p className="text-gray-600">Practice answers with a timer and optional audio recording. Progress is local to your browser.</p>
 
-      <div className="p-4 rounded border border-gray-200 bg-white/70 backdrop-blur">
+      <div className="surface p-4">
         <div className="flex items-center justify-between">
           <div className="font-medium">Question {idx + 1} of {items.length}</div>
           <div className="text-sm text-gray-600">Timer: {timer}s</div>
@@ -78,7 +78,7 @@ export default function InterviewSim() {
         </div>
       </div>
 
-      <div className="p-4 rounded border border-gray-200 bg-white/70 backdrop-blur">
+      <div className="surface p-4">
         <div className="font-medium mb-2">Session Summary</div>
         <div className="text-sm text-gray-600">Answered: {summary.count}/{items.length} • Total time: {summary.totalSec}s</div>
       </div>

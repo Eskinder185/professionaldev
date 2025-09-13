@@ -76,7 +76,7 @@ export default function JobSites() {
                   <td className="py-3 pr-4 font-medium">{s.name}</td>
                   <td className="py-3 pr-4">{s.desc}</td>
                   <td className="py-3">
-                    <a href={s.url} target="_blank" rel="noreferrer" className="btn btn-primary">
+                    <a href={s.url} target="_blank" rel="noreferrer" className="btn btn-anim btn-pink">
                       Visit →
                     </a>
                   </td>
