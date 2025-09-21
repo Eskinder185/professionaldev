@@ -7,7 +7,7 @@
 
 Roadmap to Role helps you plan and track your path to a target job—skills, certs, projects, and timelines in one clean view.
 
-> 🔗 **Live:** https://eskinder185.github.io/RoadmapToRole/
+> 🔗 **Live:**[ https://eskinder185.github.io/RoadmapToRole/](https://eskinder185.github.io/professionaldev/)
 
 ---
 
