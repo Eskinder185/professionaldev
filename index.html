@@ -10,7 +10,13 @@
           var k = "pd-theme";
           var t = localStorage.getItem(k);
           if (!t) t = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-          if (t === "light") document.documentElement.classList.add("light");
+          if (t === "light") {
+            document.documentElement.classList.add("light");
+            document.documentElement.classList.remove("dark");
+          } else {
+            document.documentElement.classList.add("dark");
+            document.documentElement.classList.remove("light");
+          }
         } catch (e) {}
       })();
     </script>

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import SectionHeader from "../../components/SectionHeader";
-import Card from "../../components/Card";
+import PageHeader from "../../components/ui/PageHeader";
 import { load, save } from "../../utils/storage";
 
 type Story = { id: string; situation: string; task: string; action: string; result: string; tightened?: boolean; date: string };
@@ -57,16 +56,47 @@ export default function StarTool() {
 
   return (
     <div className="relative">
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-10 space-y-6">
-        <SectionHeader title="STAR Method Practice Tool" subtitle="Guided steps with timer, cleanup, and export." />
+      <div className="relative z-10 mx-auto max-w-5xl space-y-0 px-4 py-10">
+        <PageHeader
+          eyebrow="Career Tools"
+          title="STAR method practice tool"
+          sub="Guided steps with timer, cleanup, and export."
+        />
 
-        <Card>
-          <div className="flex items-center gap-2">
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={timerOn} onChange={(e)=>{ setTimerOn(e.target.checked); if(!e.target.checked) setSeconds(0); }} /> Timer</label>
-            {timerOn && <div className="text-sm">{Math.floor(seconds/60)}:{String(seconds%60).padStart(2,'0')}</div>}
-            <div className="ml-auto flex gap-2 text-sm">
-              <button className="px-2 py-1 rounded border" onClick={()=>setDraft({...draft, tightened: !draft.tightened})} aria-pressed={!!draft.tightened}>Tighten</button>
-              <select className="rounded border bg-white/5" onChange={(e)=>{ const p=presets[e.target.value]; if(p) setDraft({...draft, ...p}); }}>
+        <section className="border-t border-border/70 pt-8 sm:pt-10">
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="flex items-center gap-2 text-sm text-ink-muted">
+              <input
+                type="checkbox"
+                checked={timerOn}
+                onChange={(e) => {
+                  setTimerOn(e.target.checked);
+                  if (!e.target.checked) setSeconds(0);
+                }}
+              />{" "}
+              Timer
+            </label>
+            {timerOn && (
+              <div className="text-sm font-medium text-ink dark:text-white">
+                {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}
+              </div>
+            )}
+            <div className="ml-auto flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="btn surface-muted min-h-9 px-3 text-sm"
+                onClick={() => setDraft({ ...draft, tightened: !draft.tightened })}
+                aria-pressed={!!draft.tightened}
+              >
+                Tighten
+              </button>
+              <select
+                className="input min-h-9 py-1 text-sm"
+                onChange={(e) => {
+                  const p = presets[e.target.value];
+                  if (p) setDraft({ ...draft, ...p });
+                }}
+              >
                 <option value="">Load scenario…</option>
                 <option value="leadership">Leadership</option>
                 <option value="conflict">Conflict</option>
@@ -74,41 +104,61 @@ export default function StarTool() {
               </select>
             </div>
           </div>
-        </Card>
+        </section>
 
-        {["Situation","Task","Action","Result"].map((label, i) => (
-          <Card key={label}>
-            <div className="font-medium mb-2">{label}</div>
-            <textarea aria-label={label} className="w-full h-28 p-2 rounded border border-white/10 bg-white/5" value={(draft as any)[label.toLowerCase()]} onChange={(e)=>setDraft({...draft, [label.toLowerCase()]: e.target.value})} />
-            <div className="mt-1 text-xs opacity-70">{((draft as any)[label.toLowerCase()]||'').split(/\s+/).filter(Boolean).length} words</div>
-            <div className="mt-2 flex justify-between">
-              <button className="px-3 py-1 rounded border" onClick={()=>setStep(Math.max(0, step-1))} disabled={i===0}>Back</button>
-              <button className="px-3 py-1 rounded border" onClick={()=>setStep(Math.min(3, step+1))} disabled={i===3}>Next</button>
+        {["Situation", "Task", "Action", "Result"].map((label, i) => (
+          <section key={label} className="border-t border-border/70 pt-8 sm:pt-10">
+            <h2 className="mb-3 font-medium text-ink dark:text-white">{label}</h2>
+            <textarea
+              aria-label={label}
+              className="textarea min-h-28 w-full"
+              value={(draft as any)[label.toLowerCase()]}
+              onChange={(e) => setDraft({ ...draft, [label.toLowerCase()]: e.target.value })}
+            />
+            <div className="mt-2 text-xs text-ink-muted">
+              {((draft as any)[label.toLowerCase()] || "").split(/\s+/).filter(Boolean).length} words
             </div>
-          </Card>
+            <div className="mt-4 flex justify-between gap-4">
+              <button type="button" className="btn surface-muted min-h-10 px-4" onClick={() => setStep(Math.max(0, step - 1))} disabled={i === 0}>
+                Back
+              </button>
+              <button type="button" className="btn surface-muted min-h-10 px-4" onClick={() => setStep(Math.min(3, step + 1))} disabled={i === 3}>
+                Next
+              </button>
+            </div>
+          </section>
         ))}
 
-        <Card>
+        <section className="border-t border-border/70 pt-8 sm:pt-10">
           <div ref={reportRef}>
-            <div className="font-medium mb-2">STAR Story</div>
-            <p className="whitespace-pre-wrap">{tightenedText}</p>
+            <h2 className="mb-3 font-medium text-ink dark:text-white">STAR story</h2>
+            <p className="whitespace-pre-wrap text-body text-ink-muted">{tightenedText}</p>
           </div>
-          <div className="mt-3 flex gap-2">
-            <button className="px-3 py-1 rounded border" onClick={saveStory}>Save</button>
-            <button className="px-3 py-1 rounded border" onClick={()=>navigator.clipboard?.writeText(tightenedText)}>Copy</button>
-            <button className="px-3 py-1 rounded border" onClick={exportPDF}>Export PDF</button>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button type="button" className="btn surface-muted min-h-10 px-4" onClick={saveStory}>
+              Save
+            </button>
+            <button type="button" className="btn surface-muted min-h-10 px-4" onClick={() => navigator.clipboard?.writeText(tightenedText)}>
+              Copy
+            </button>
+            <button type="button" className="btn surface-muted min-h-10 px-4" onClick={exportPDF}>
+              Export PDF
+            </button>
           </div>
-        </Card>
+        </section>
 
         {library.length > 0 && (
-          <Card>
-            <div className="font-medium mb-2">Saved Stories</div>
-            <ul className="list-disc pl-5 text-sm space-y-1">
+          <section className="border-t border-border/70 pt-8 sm:pt-10 pb-2">
+            <h2 className="mb-3 font-medium text-ink dark:text-white">Saved stories</h2>
+            <ul className="list-disc space-y-1 pl-5 text-sm text-ink-muted">
               {library.map((s) => (
-                <li key={s.id}><span className="opacity-70 mr-2">{new Date(s.date).toLocaleString()}:</span>{(s.situation + ' ' + s.task).slice(0, 80)}…</li>
+                <li key={s.id}>
+                  <span className="mr-2 text-ink-muted/80">{new Date(s.date).toLocaleString()}:</span>
+                  {(s.situation + " " + s.task).slice(0, 80)}…
+                </li>
               ))}
             </ul>
-          </Card>
+          </section>
         )}
       </div>
     </div>

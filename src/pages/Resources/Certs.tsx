@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import PageHeader from "../../components/ui/PageHeader";
 
 type Block = {
   title: string;
@@ -17,7 +18,7 @@ function Section({
   tags?: string[];
 }) {
   return (
-    <section id={id} className="surface p-5 hover-glow fade-up" style={{ ["--glow" as any]: glow }}>
+    <section id={id} className="border-t border-border/70 pt-8 sm:pt-10 fade-up">
       <div className="flex items-center gap-3">
         <div className="text-2xl">{emoji}</div>
         <h2 className="text-xl font-semibold">{title}</h2>
@@ -28,11 +29,15 @@ function Section({
         </div>
       )}
 
-      <div className="grid md:grid-cols-2 gap-4 mt-4">
+      <div className="grid md:grid-cols-2 gap-6 mt-6">
         {blocks.map(b => (
-          <div key={b.title} className="surface-muted p-4 rounded-xl">
+          <div
+            key={b.title}
+            className="surface-emphasis border-l-4 py-3 pl-4 pr-2"
+            style={{ borderLeftColor: glow }}
+          >
             <h3 className="font-semibold">{b.title}</h3>
-            <ul className="list-disc pl-5 mt-2 space-y-1">
+            <ul className="list-disc pl-5 mt-2 space-y-1 text-sm text-ink-muted">
               {b.points.map((p, i) => <li key={i}>{p}</li>)}
             </ul>
           </div>
@@ -44,20 +49,20 @@ function Section({
 
 export default function Certs() {
   return (
-    <div className="space-y-6">
-      <header className="surface-muted p-6 fade-up">
-        <h1 className="brand-heading text-2xl font-semibold">Certifications & Learning</h1>
-        <p>Very important, job-ready pointers for four tracks. Use the table of contents to jump between sections.</p>
-      </header>
+    <div className="space-y-0">
+      <PageHeader
+        eyebrow="Resources"
+        title="Certifications & Learning"
+        sub="Very important, job-ready pointers for four tracks. Use the table of contents to jump between sections."
+      />
 
-      {/* TOC */}
-      <nav className="surface p-4 rounded-2xl fade-up">
+      <nav className="border-t border-border/70 py-6 fade-up">
         <div className="flex flex-wrap gap-2">
           <a href="#cloud" className="btn btn-anim btn-pink">☁️ Cloud</a>
           <a href="#datasci" className="btn btn-anim btn-pink">📊 Data Science</a>
           <a href="#dev" className="btn btn-anim btn-pink">💻 Developer</a>
           <a href="#security" className="btn btn-anim btn-pink">🛡️ Security</a>
-          <Link to="/Resources" className="btn">← Back to Resources</Link>
+          <Link to="/resources" className="btn">← Back to Resources</Link>
         </div>
       </nav>
 

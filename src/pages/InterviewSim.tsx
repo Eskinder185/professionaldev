@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMediaRecorder } from "../hooks/useMediaRecorder";
+import PageHeader from "../components/ui/PageHeader";
 
 type QA = { q: string; a?: string; startedAt?: number; endedAt?: number; recordingId?: string };
 
@@ -12,9 +13,6 @@ const DEFAULT_BANK: string[] = [
 ];
 
 export default function InterviewSim() {
-  const [bank, setBank] = useState<string[]>(() => {
-    try { return JSON.parse(localStorage.getItem("interviewSim:bank") || "[]"); } catch { return []; }
-  });
   const [items, setItems] = useState<QA[]>(() => DEFAULT_BANK.map((q) => ({ q })));
   const [idx, setIdx] = useState(0);
   const [timer, setTimer] = useState(0);
@@ -32,7 +30,9 @@ export default function InterviewSim() {
   }, [idx, items]);
 
   useEffect(() => {
-    try { localStorage.setItem("interviewSim:autoRecord", autoRecord ? "1" : "0"); } catch {}
+    try {
+      localStorage.setItem("interviewSim:autoRecord", autoRecord ? "1" : "0");
+    } catch {}
   }, [autoRecord]);
 
   const start = async () => {
@@ -46,7 +46,7 @@ export default function InterviewSim() {
     const it = copy[idx];
     copy[idx] = { ...it, endedAt: Date.now() };
     setItems(copy);
-    if (autoRecord) await rec.stop(`Q${idx+1}`);
+    if (autoRecord) await rec.stop(`Q${idx + 1}`);
   };
   const next = () => setIdx((i) => Math.min(items.length - 1, i + 1));
   const prev = () => setIdx((i) => Math.max(0, i - 1));
@@ -58,31 +58,56 @@ export default function InterviewSim() {
   }, [items]);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold">Mock Interview</h1>
-      <p className="text-gray-600">Practice answers with a timer and optional audio recording. Progress is local to your browser.</p>
+    <div className="mx-auto max-w-4xl space-y-0">
+      <PageHeader
+        eyebrow="Career Tools"
+        title="Mock Interview"
+        sub="Practice answers with a timer and optional audio recording. Progress is local to your browser."
+      />
 
-      <div className="surface p-4">
+      <section className="border-t border-border/70 pt-8 sm:pt-10">
         <div className="flex items-center justify-between">
-          <div className="font-medium">Question {idx + 1} of {items.length}</div>
-          <div className="text-sm text-gray-600">Timer: {timer}s</div>
+          <div className="font-medium text-ink dark:text-white">
+            Question {idx + 1} of {items.length}
+          </div>
+          <div className="text-sm text-ink-muted">Timer: {timer}s</div>
         </div>
-        <div className="mt-2 text-lg">{current.q}</div>
-        <textarea className="mt-3 w-full h-32 p-2 rounded border border-gray-200" placeholder="Notes / key points (optional)" value={current.a || ""} onChange={(e) => { const copy=[...items]; copy[idx] = { ...copy[idx], a: e.target.value }; setItems(copy); }} />
-        <div className="mt-2 flex gap-2">
-          <button className="px-3 py-1 rounded border" onClick={prev} disabled={idx===0}>Prev</button>
-          <button className="px-3 py-1 rounded border" onClick={start}>Start</button>
-          <button className="px-3 py-1 rounded border" onClick={stop}>Stop</button>
-          <button className="px-3 py-1 rounded border" onClick={next} disabled={idx===items.length-1}>Next</button>
-          <label className="ml-auto flex items-center gap-2 text-sm"><input type="checkbox" checked={autoRecord} onChange={(e) => setAutoRecord(e.target.checked)} /> Auto-record</label>
+        <p className="mt-3 text-lg text-ink dark:text-white">{current.q}</p>
+        <textarea
+          className="textarea mt-4 min-h-32 w-full"
+          placeholder="Notes / key points (optional)"
+          value={current.a || ""}
+          onChange={(e) => {
+            const copy = [...items];
+            copy[idx] = { ...copy[idx], a: e.target.value };
+            setItems(copy);
+          }}
+        />
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" className="btn surface-muted min-h-10 px-4" onClick={prev} disabled={idx === 0}>
+            Prev
+          </button>
+          <button type="button" className="btn surface-muted min-h-10 px-4" onClick={start}>
+            Start
+          </button>
+          <button type="button" className="btn surface-muted min-h-10 px-4" onClick={stop}>
+            Stop
+          </button>
+          <button type="button" className="btn surface-muted min-h-10 px-4" onClick={next} disabled={idx === items.length - 1}>
+            Next
+          </button>
+          <label className="ml-auto flex items-center gap-2 text-sm text-ink-muted">
+            <input type="checkbox" checked={autoRecord} onChange={(e) => setAutoRecord(e.target.checked)} /> Auto-record
+          </label>
         </div>
-      </div>
+      </section>
 
-      <div className="surface p-4">
-        <div className="font-medium mb-2">Session Summary</div>
-        <div className="text-sm text-gray-600">Answered: {summary.count}/{items.length} • Total time: {summary.totalSec}s</div>
-      </div>
+      <section className="border-t border-border/70 pt-8 sm:pt-10 pb-4">
+        <h2 className="font-medium text-ink dark:text-white">Session summary</h2>
+        <p className="mt-2 text-sm text-ink-muted">
+          Answered: {summary.count}/{items.length} · Total time: {summary.totalSec}s
+        </p>
+      </section>
     </div>
   );
 }
-

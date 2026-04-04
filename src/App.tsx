@@ -38,18 +38,20 @@ import Contact from "./pages/Contact";
 import SelfAssessment from "./pages/SelfAssessment/Index";
 import CareerTools from "./pages/CareerTools/Index";
 import Resources from "./pages/Resources/Index";
+import TechCareerHub from "./pages/TechCareerHub";
 // (no duplicate imports)
 
 import NavBar from "./components/NavBar";
-import BackgroundConstellations from "./components/backgrounds/BackgroundConstellations";
+import SiteBackground from "./components/shell/SiteBackground";
+import SiteFooter from "./components/shell/SiteFooter";
 
 export default function App() {
   return (
-    <div className="min-h-screen flex flex-col relative">
-      <BackgroundConstellations />
+    <div className="relative flex min-h-screen flex-col">
+      <SiteBackground />
       <NavBar />
 
-      <main className="flex-grow p-6">
+      <main className="mx-auto w-full max-w-content flex-grow px-4 py-8 sm:px-6 sm:py-10 md:py-12">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -90,16 +92,15 @@ export default function App() {
           <Route path="/resources/trackers" element={<Trackers />} />
           <Route path="/resources/productivity" element={<Productivity />} />
           <Route path="/Resources/JobSites" element={<JobSites />} />
+          <Route path="/resources/job-sites" element={<JobSites />} />
           <Route path="/resources/app-tracker" element={<AppTracker />} />
 
           <Route path="/contact" element={<Contact />} />
+          <Route path="/tech-career-hub" element={<TechCareerHub />} />
         </Routes>
       </main>
 
-      {/* Updated footer text */}
-      <footer className="bg-white/50 backdrop-blur p-4 text-center text-gray-600">
-        © 2025 Roadmap to Role
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

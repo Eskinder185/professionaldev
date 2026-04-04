@@ -1,48 +1,131 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { ChevronDown } from "lucide-react";
 
 type Stage = "discover" | "build" | "grow";
 
-const STAGES: Record<Stage, { title: string; blurb: string; links: {label:string; to:string}[]; checklist: string[] }> = {
+const STAGES: Record<
+  Stage,
+  {
+    title: string;
+    blurb: string;
+    links: { label: string; to: string }[];
+    checklist: string[];
+    meta: string;
+  }
+> = {
   discover: {
     title: "Discover",
-    blurb: "Clarify strengths, values, and interests so actions match who you are.",
-    links: [ { label: "Open Self-Assessment", to: "/self-assessment" } ],
-    checklist: ["Take strengths test", "Write 5 values", "Pick 3 role interests"],
+    meta: "Path & fit",
+    blurb:
+      "Before you optimize a résumé, you need a target worth proving. Discover uses strengths, values, and interests so you choose a path that fits how you work—not a title you saw on a list. That choice becomes the lens for every artifact you build next.",
+    links: [{ label: "Open Self-Assessment", to: "/self-assessment" }],
+    checklist: [
+      "Finish one strengths or values module and capture your top 3 signals",
+      "Name 1–2 role families that match those signals (e.g., frontend, cloud, security)",
+      "Write one line: the proof you’ll need next for those roles",
+    ],
   },
   build: {
     title: "Build",
-    blurb: "Turn clarity into proof: résumé, LinkedIn, STAR stories, portfolio.",
-    links: [ { label: "Open Career Tools", to: "/career-tools" } ],
-    checklist: ["Polish résumé headline", "Tighten LinkedIn 'About'", "Add 2 portfolio updates"],
+    meta: "Artifacts",
+    blurb:
+      "Skills only count when they show up as proof: a résumé that survives ATS, a LinkedIn and GitHub surface that passes a skim, projects and READMEs that demonstrate ownership, and STAR answers that hold up in structured interviews. Build is where effort becomes verifiable output.",
+    links: [{ label: "Open Career Tools", to: "/career-tools" }],
+    checklist: [
+      "Run the résumé grader and address the highest-impact fixes first",
+      "Ship one portfolio or GitHub upgrade someone can validate in under a minute",
+      "Lock two STAR stories with at least one metric each",
+    ],
   },
   grow: {
     title: "Grow",
-    blurb: "Use roadmaps, trackers, and time tools to keep consistent momentum.",
-    links: [ { label: "Open Resources", to: "/resources" } ],
-    checklist: ["Pick a cert/learning path", "Plan weekly hours", "Log progress twice this week"],
+    meta: "Systems & momentum",
+    blurb:
+      "Offers come from sustained execution: certification roadmaps, repeatable job-search habits, application and skill tracking, referrals, and iteration after every screen. Grow is the operating layer—so you’re not starting from zero each week.",
+    links: [{ label: "Open Resources", to: "/resources" }],
+    checklist: [
+      "Choose a cert or learning roadmap and block weekly hours on the calendar",
+      "Use trackers to log applications, next actions, and practice time",
+      "Add one referral or intentional networking step to your pipeline",
+    ],
   },
 };
 
+const FAQ_ITEMS = [
+  {
+    q: "What should I do first?",
+    a: "Start in Discover if your target role still feels fuzzy—one pass through strengths, values, or interests gives you a defensible direction. If you already know the role, go straight to Build and fix the highest-leverage artifact (usually résumé or LinkedIn), then use Grow to run applications and learning on a schedule. The loop is repeatable whenever you pivot.",
+  },
+  {
+    q: "Why does this site focus so much on proof?",
+    a: "Hiring decisions are made from evidence, not intention. Recruiters and managers rarely infer potential from study notes—they scan files, profiles, repos, and interview answers. This platform is structured so each phase produces something that can survive ATS parsing, a short human skim, and behavioral questions. Proof is the interface between you and an offer.",
+  },
+  {
+    q: "Do I need certifications first?",
+    a: "Not necessarily. Certs help when they close a credibility gap for a specific path (e.g., cloud or security). Many candidates should pair a lean cert plan with strong Build outputs—résumé, projects, stories—so credentials support proof instead of replacing it. Use Grow’s roadmaps when a cert clearly moves your target role forward.",
+  },
+  {
+    q: "How do I know I’m progressing?",
+    a: "Progress shows up as concrete deltas: a higher résumé score, clearer LinkedIn and GitHub signals, more rehearsed stories, logged applications, and follow-through on next actions. If those outputs aren’t moving, you’re still in intention territory—tighten one artifact or one weekly habit until the evidence improves.",
+  },
+] as const;
+
+const CHECKLIST_STORAGE_VER = "v4";
+
 export default function About() {
   const [stage, setStage] = useState<Stage>(() => (localStorage.getItem("pd:about:stage3") as Stage) || "discover");
-  useEffect(()=> localStorage.setItem("pd:about:stage3", stage), [stage]);
+  useEffect(() => localStorage.setItem("pd:about:stage3", stage), [stage]);
   const s = STAGES[stage];
 
   return (
-    <div className="space-y-6">
-      <header className="surface-muted p-6">
-        <h1 className="brand-heading text-2xl font-semibold">About</h1>
-        <p>Three-step loop: <b>Discover → Build → Grow</b>. Pick your stage and jump in.</p>
+    <div className="pb-20 sm:pb-24">
+      <header className="mb-16 sm:mb-20">
+        <p className="section-label">About</p>
+        <h1 className="mt-4 max-w-3xl text-balance text-title font-semibold tracking-tight text-ink dark:text-white sm:text-4xl sm:leading-[1.08]">
+          A system for turning effort into hireable proof
+        </h1>
+        <p className="section-plain mt-6 max-w-2xl text-body leading-relaxed text-ink-muted sm:mt-7 sm:text-lead">
+          This platform is built around one reality:{" "}
+          <span className="font-medium text-ink dark:text-white">
+            hiring decisions are made from evidence, not intention.
+          </span>{" "}
+          You don’t move through random tips—you follow a structured loop where each step creates output that can survive ATS parsing, recruiter skim time, and structured interviews.
+        </p>
+        <p className="section-plain mt-5 max-w-2xl text-sm leading-relaxed text-ink-muted sm:text-[0.9375rem] sm:leading-relaxed">
+          <span className="font-medium text-ink dark:text-white">Discover</span>,{" "}
+          <span className="font-medium text-ink dark:text-white">Build</span>, and{" "}
+          <span className="font-medium text-ink dark:text-white">Grow</span> are how we organize that work: choose
+          fit, ship artifacts, then run the search and learning system that compounds—without pretending that
+          passive learning alone closes the gap to an offer.
+        </p>
       </header>
 
-      <section className="surface p-5 hover-glow">
-        <h2 className="text-lg font-semibold">Where are you now?</h2>
-        <div className="grid sm:grid-cols-3 gap-2 mt-3">
-          {(["discover","build","grow"] as Stage[]).map(id => (
-            <button key={id}
-              className={`btn ${stage===id ? "btn-anim btn-pink" : ""}`}
-              onClick={()=>setStage(id)}
+      <section className="mb-16 sm:mb-20" aria-labelledby="about-stage-label">
+        <h2
+          id="about-stage-label"
+          className="text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-ink-muted"
+        >
+          Where you are now
+        </h2>
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-ink-muted sm:text-[0.9375rem]">
+          <span className="font-medium text-ink dark:text-white">Discover</span> — choose a path from strengths,
+          values, and interests. <span className="font-medium text-ink dark:text-white">Build</span> — turn skills
+          into proof artifacts. <span className="font-medium text-ink dark:text-white">Grow</span> — apply, refine,
+          track, and sustain momentum. Select the phase that matches today’s bottleneck.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-2">
+          {(["discover", "build", "grow"] as Stage[]).map((id) => (
+            <button
+              key={id}
+              type="button"
+              className={
+                stage === id
+                  ? "btn btn-primary min-h-10 px-5"
+                  : "btn surface-muted min-h-10 border-transparent bg-transparent px-5 dark:bg-transparent"
+              }
+              onClick={() => setStage(id)}
+              aria-pressed={stage === id}
             >
               {STAGES[id].title}
             </button>
@@ -50,67 +133,112 @@ export default function About() {
         </div>
       </section>
 
-      <section className="surface p-5 hover-glow">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{s.title}</h2>
-          <span className="chip">{stage === "build" ? "ship proof" : stage === "grow" ? "keep momentum" : "clarify fit"}</span>
+      <section className="mb-16 sm:mb-20" aria-labelledby="about-focus-heading">
+        <div className="flex flex-col gap-1 border-t border-black/[0.07] pt-10 dark:border-white/[0.09] sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
+          <h2
+            id="about-focus-heading"
+            className="text-2xl font-semibold tracking-tight text-ink dark:text-white sm:text-[1.65rem]"
+          >
+            {s.title}
+          </h2>
+          <p className="shrink-0 text-caption font-medium tracking-wide text-ink-faint">{s.meta}</p>
         </div>
-        <p className="mt-2">{s.blurb}</p>
-
-        <div className="grid sm:grid-cols-3 gap-2 mt-3">
-          {s.links.map(l => <Link key={l.to} to={l.to} className="btn btn-anim btn-pink">{l.label}</Link>)}
+        <p className="section-plain mt-8 max-w-2xl text-body leading-relaxed text-ink-muted">{s.blurb}</p>
+        <div className="mt-10">
+          {s.links.map((l) => (
+            <Link key={l.to} to={l.to} className="btn btn-primary min-h-11 px-6">
+              {l.label}
+            </Link>
+          ))}
         </div>
 
-        <Checklist stage={stage} />
+        <div className="mt-14 border-t border-black/[0.07] pt-10 dark:border-white/[0.09] sm:mt-16 sm:pt-12">
+          <h3 className="text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+            This week
+          </h3>
+          <p className="mt-2 max-w-xl text-caption leading-relaxed text-ink-faint">
+            Light checkpoints—tick them off as you ship proof, not as busywork.
+          </p>
+          <Checklist key={stage} stage={stage} />
+        </div>
       </section>
 
-      <section className="surface p-5 hover-glow">
-        <h2 className="text-lg font-semibold">FAQ</h2>
-        <FAQItem q="What should I do first?" a="Start with Discover → one strengths/values pass. Then Build → make one résumé/LinkedIn improvement. Finally Grow → choose one weekly goal." />
-        <FAQItem q="How often should I come back?" a="20–40 minutes per day is great. Small daily moves beat big sporadic sessions." />
-        <FAQItem q="How do I know I'm progressing?" a="Proof increases: clearer profile, better portfolio, higher application quality, and consistent logs." />
+      <section className="border-t border-black/[0.07] pt-14 dark:border-white/[0.09] sm:pt-16" aria-labelledby="about-faq-heading">
+        <h2 id="about-faq-heading" className="text-2xl font-semibold tracking-tight text-ink dark:text-white">
+          Frequently asked questions
+        </h2>
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-muted">
+          Short answers aligned with how the product is meant to be used.
+        </p>
+        <div className="mt-10 max-w-2xl border-t border-black/[0.07] pt-2 dark:border-white/[0.09]">
+          {FAQ_ITEMS.map(({ q, a }) => (
+            <FAQItem key={q} q={q} a={a} />
+          ))}
+        </div>
       </section>
     </div>
   );
 }
 
 function Checklist({ stage }: { stage: Stage }) {
-  const key = `pd:about:${stage}:check3`;
+  const key = `pd:about:${stage}:check:${CHECKLIST_STORAGE_VER}`;
   const defaults = STAGES[stage].checklist;
   const [state, setState] = useState<boolean[]>(() => {
-    try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; }
+    try {
+      const raw = JSON.parse(localStorage.getItem(key) || "[]");
+      if (!Array.isArray(raw) || raw.length !== defaults.length) return defaults.map(() => false);
+      return raw;
+    } catch {
+      return defaults.map(() => false);
+    }
   });
-  useEffect(()=> localStorage.setItem(key, JSON.stringify(state)), [state]);
+
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(state));
+  }, [key, state]);
+
   return (
-    <div className="surface-muted p-4 rounded-xl mt-4">
-      <div className="font-medium">Quick checklist</div>
-      <ul className="mt-2 space-y-1">
-        {defaults.map((label, i) => (
-          <li key={label} className="flex items-center gap-2">
-            <input type="checkbox" className="accent-[var(--accent-pink)] scale-110"
-              checked={!!state[i]}
-              onChange={e => { const n=[...state]; n[i]=e.target.checked; setState(n); }}
-            />
-            <span className={state[i] ? "line-through opacity-70" : ""}>{label}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <ul className="mt-6 space-y-0" role="list">
+      {defaults.map((label, i) => (
+        <li
+          key={label}
+          className="flex items-start gap-3 border-b border-black/[0.06] py-4 last:border-b-0 dark:border-white/[0.08]"
+        >
+          <input
+            type="checkbox"
+            id={`about-check-${stage}-${i}`}
+            className="mt-1 h-4 w-4 shrink-0 rounded border-black/20 accent-[rgb(var(--tw-accent))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--tw-accent))] dark:border-white/25"
+            checked={!!state[i]}
+            onChange={(e) => {
+              const n = [...state];
+              n[i] = e.target.checked;
+              setState(n);
+            }}
+            aria-label={label}
+          />
+          <label
+            htmlFor={`about-check-${stage}-${i}`}
+            className={`cursor-pointer text-sm leading-relaxed text-ink dark:text-white/95 ${state[i] ? "text-ink-muted line-through dark:text-ink-muted" : ""}`}
+          >
+            {label}
+          </label>
+        </li>
+      ))}
+    </ul>
   );
 }
 
 function FAQItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false);
   return (
-    <div className="surface-muted rounded-xl mb-2 overflow-hidden">
-      <button className="w-full text-left px-4 py-3 flex items-center justify-between"
-        onClick={()=>setOpen(o=>!o)}>
-        <span className="font-medium">{q}</span>
-        <span className="chip">{open ? "–" : "+"}</span>
-      </button>
-      <div className={`px-4 pb-4 text-sm transition-[max-height,opacity] duration-300 ${open?"max-h-40 opacity-100":"max-h-0 opacity-0"}`}>
-        {a}
-      </div>
-    </div>
+    <details className="group border-b border-black/[0.06] last:border-b-0 dark:border-white/[0.08]">
+      <summary className="flex cursor-pointer list-none items-start justify-between gap-4 py-5 text-left marker:content-none [&::-webkit-details-marker]:hidden">
+        <span className="min-w-0 flex-1 text-base font-medium leading-snug text-ink dark:text-white">{q}</span>
+        <ChevronDown
+          className="mt-0.5 h-4 w-4 shrink-0 text-ink-faint transition-transform duration-200 group-open:rotate-180"
+          aria-hidden
+        />
+      </summary>
+      <p className="section-plain max-w-prose pb-6 text-sm leading-relaxed text-ink-muted">{a}</p>
+    </details>
   );
 }

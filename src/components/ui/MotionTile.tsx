@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { Link } from "react-router-dom";
 
-/** Animated tile: float-in, expand on hover with orange glow, and shine highlight. */
+/** Animated tile: restrained entrance and subtle depth on hover. */
 export default function MotionTile({
   title, desc, tags, to, href, delay = 0
 }: {
@@ -68,7 +68,7 @@ export default function MotionTile({
         ref={cardRef}
         onMouseMove={onMove}
         onMouseLeave={onLeave}
-        className="surface p-5 rounded-2xl hover-expand-orange shine tile-3d bob h-full transition-all duration-300 ease-out"
+        className="surface tile-3d card-rise shine h-full rounded-2xl p-5"
       >
         <Content />
       </div>

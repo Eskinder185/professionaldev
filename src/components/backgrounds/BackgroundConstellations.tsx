@@ -25,7 +25,7 @@ export default function BackgroundConstellations() {
       ctx.fillRect(0, 0, w, h);
     }
 
-    let N = Math.min(140, Math.floor((window.innerWidth * window.innerHeight) / 18000));
+    let N = Math.min(72, Math.floor((window.innerWidth * window.innerHeight) / 32000));
     const pts = Array.from({ length: N }, () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
@@ -53,7 +53,7 @@ export default function BackgroundConstellations() {
           if (d2 < R * R) {
             const a = 1 - d2 / (R * R);
             ctx.strokeStyle = link;
-            ctx.globalAlpha = 0.22 * a;
+            ctx.globalAlpha = 0.08 * a;
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(pts[i].x, pts[i].y);
@@ -71,7 +71,7 @@ export default function BackgroundConstellations() {
         if (p.y < 0 || p.y > window.innerHeight) p.vy *= -1;
 
         ctx.fillStyle = colors[i % colors.length];
-        ctx.globalAlpha = 0.9;
+        ctx.globalAlpha = 0.35;
         ctx.beginPath();
         ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
         ctx.fill();

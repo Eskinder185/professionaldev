@@ -1,9 +1,13 @@
 import { listKeys, getLocal, setLocal, removeLocal } from "../hooks/useLocal";
+import PageHeader from "../components/ui/PageHeader";
 
 async function idbOpen() {
   return new Promise<IDBDatabase>((resolve, reject) => {
     const req = indexedDB.open("pd:speech", 1);
-    req.onupgradeneeded = () => { const db = req.result; if (!db.objectStoreNames.contains("blobs")) db.createObjectStore("blobs"); };
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains("blobs")) db.createObjectStore("blobs");
+    };
     req.onerror = () => reject(req.error);
     req.onsuccess = () => resolve(req.result);
   });
@@ -11,7 +15,7 @@ async function idbOpen() {
 
 async function listVideoKeys() {
   const history = getLocal<any[]>("pd:speech:history", []);
-  return history.map(h => h.blobKey).filter(Boolean);
+  return history.map((h) => h.blobKey).filter(Boolean);
 }
 
 async function exportData() {
@@ -24,14 +28,16 @@ async function exportData() {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = "professionaldev-data.json"; a.click();
+  a.href = url;
+  a.download = "professionaldev-data.json";
+  a.click();
   URL.revokeObjectURL(url);
 }
 
 async function importData(file: File, onWarn: (msg: string) => void) {
   const text = await file.text();
   const obj = JSON.parse(text);
-  const keys = Object.keys(obj).filter(k => k.startsWith("pd:"));
+  const keys = Object.keys(obj).filter((k) => k.startsWith("pd:"));
   keys.forEach((k) => setLocal(k, obj[k]));
   const listed = await listVideoKeys();
   const expected: string[] = Array.isArray(obj["pd:videos"]) ? obj["pd:videos"] : [];
@@ -41,7 +47,6 @@ async function importData(file: File, onWarn: (msg: string) => void) {
 
 async function resetAll() {
   for (const k of listKeys("pd:")) removeLocal(k);
-  // Clear blobs
   const db = await idbOpen();
   await new Promise<void>((res, rej) => {
     const tx = db.transaction("blobs", "readwrite");
@@ -52,46 +57,72 @@ async function resetAll() {
   db.close();
 }
 
+const block = "border-t border-black/[0.07] py-10 dark:border-white/[0.09] sm:py-12";
+
 export default function Settings() {
   const reduced = getLocal<boolean>("pd:settings:reducedMotion", false);
   const toggleReduced = () => setLocal("pd:settings:reducedMotion", !reduced);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <header className="surface-muted p-6 fade-up">
-        <h1 className="brand-heading text-2xl font-semibold">Settings</h1>
-        <p>Control motion, privacy, and data management.</p>
-      </header>
+    <div className="mx-auto max-w-4xl space-y-0 pb-16">
+      <PageHeader title="Settings" sub="Control motion, privacy, and data management." />
 
-      <div className="surface p-4 space-y-4 hover-glow" style={{ ["--glow" as any]: "var(--accent-purple)" }}>
-        <div className="flex items-center justify-between">
+      <section className={block}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="font-medium">Reduced Motion</div>
-            <div className="text-sm">Disable auto-scroll animations in teleprompter.</div>
+            <h2 className="font-semibold text-ink dark:text-white">Reduced motion</h2>
+            <p className="mt-1 text-sm text-ink-muted">Disable auto-scroll animations in teleprompter.</p>
           </div>
           <button
             type="button"
-            className={`btn ${reduced ? 'btn-anim btn-pink' : ''}`}
+            className={`btn min-h-11 px-5 ${reduced ? "btn-primary" : ""}`}
             aria-pressed={reduced}
             onClick={toggleReduced}
-            onKeyDown={(e)=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggleReduced(); } }}
+            onKeyDown={(e) => {
+              if (e.key === " " || e.key === "Enter") {
+                e.preventDefault();
+                toggleReduced();
+              }
+            }}
           >
-            {reduced ? 'On' : 'Off'}
+            {reduced ? "On" : "Off"}
           </button>
         </div>
-        <div className="text-sm">Privacy: data stays in your browser. Videos are stored in IndexedDB.</div>
-      </div>
+        <p className="mt-6 text-sm text-ink-muted">Privacy: data stays in your browser. Videos are stored in IndexedDB.</p>
+      </section>
 
-      <div className="surface p-4 space-y-3 hover-glow" style={{ ["--glow" as any]: "var(--accent-blue)" }}>
-        <div className="font-medium">Data management</div>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" className="btn" onClick={exportData}>Export My Data</button>
-          <label className="btn cursor-pointer">Import My Data
-            <input type="file" accept="application/json" className="hidden" onChange={async (e)=>{ const f=e.target.files?.[0]; if (f) await importData(f, (msg)=>alert(msg)); }} />
+      <section className={block}>
+        <h2 className="font-semibold text-ink dark:text-white">Data management</h2>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" className="btn min-h-10 px-4" onClick={exportData}>
+            Export my data
+          </button>
+          <label className="btn min-h-10 cursor-pointer px-4">
+            Import my data
+            <input
+              type="file"
+              accept="application/json"
+              className="hidden"
+              onChange={async (e) => {
+                const f = e.target.files?.[0];
+                if (f) await importData(f, (msg) => alert(msg));
+              }}
+            />
           </label>
-          <button type="button" className="btn" onClick={async ()=>{ if(confirm('Reset all ProfessionalDev data?')) { await resetAll(); location.reload(); }}}>Reset All</button>
+          <button
+            type="button"
+            className="btn min-h-10 px-4"
+            onClick={async () => {
+              if (confirm("Reset all ProfessionalDev data?")) {
+                await resetAll();
+                location.reload();
+              }
+            }}
+          >
+            Reset all
+          </button>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

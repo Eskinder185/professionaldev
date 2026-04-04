@@ -1,7 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import SectionHeader from "../../components/SectionHeader";
-import Card from "../../components/Card";
+import PageHeader from "../../components/ui/PageHeader";
 import { STRENGTHS_QUESTIONS, Likert, Q } from "../../data/self/strengthsQuestions";
 import { save, load } from "../../utils/storage";
 
@@ -69,88 +68,123 @@ export default function StrengthsTest() {
 
   return (
     <div className="relative">
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-10 space-y-6">
-        <SectionHeader title="Strengths & Weaknesses Test" subtitle="20 questions · ~10–15 minutes · stored locally only" />
+      <div className="relative z-10 mx-auto max-w-5xl space-y-0 px-4 py-10">
+        <PageHeader
+          eyebrow="Self assessment"
+          title="Strengths & weaknesses test"
+          sub="20 questions · ~10–15 minutes · stored locally only"
+        />
 
         {step === 1 && (
-          <Card>
-            <p className="text-white/80">This quick test measures four work traits: Focus, Communication, Ownership, and Pace. Your data stays on your device. When ready, start the quiz.</p>
-            <div className="mt-3">
-              <button className="px-3 py-1.5 rounded bg-blue-600 text-white" onClick={() => setStep(2)}>Start</button>
+          <section className="border-t border-border/70 pt-8 sm:pt-10">
+            <p className="text-body text-ink-muted">
+              This quick test measures four work traits: Focus, Communication, Ownership, and Pace. Your data stays on your device. When ready, start the quiz.
+            </p>
+            <div className="mt-4">
+              <button type="button" className="btn btn-primary min-h-10 px-4" onClick={() => setStep(2)}>
+                Start
+              </button>
             </div>
-          </Card>
+          </section>
         )}
 
         {step === 2 && (
-          <Card>
-            <div className="flex items-center justify-between mb-3">
-              <div className="font-medium">Questions {page * 5 + 1}–{Math.min(page * 5 + 5, STRENGTHS_QUESTIONS.length)}</div>
-              <div className="text-sm text-white/70">Page {page + 1} / {pages}</div>
+          <section className="border-t border-border/70 pt-8 sm:pt-10">
+            <div className="mb-6 flex items-center justify-between">
+              <div className="font-medium text-ink dark:text-white">
+                Questions {page * 5 + 1}–{Math.min(page * 5 + 5, STRENGTHS_QUESTIONS.length)}
+              </div>
+              <div className="text-sm text-ink-muted">
+                Page {page + 1} / {pages}
+              </div>
             </div>
-            <div className="space-y-4">
+            <div className="divide-y divide-border/60 border-t border-border/60">
               {pageQs.map((q) => (
-                <div key={q.id} className="bg-white/5 rounded p-3 border border-white/10">
-                  <div className="mb-2">{q.text}</div>
-                  <div className="flex gap-3">
-                    {[1,2,3,4,5].map((v) => (
-                      <label key={v} className="inline-flex items-center gap-1">
-                        <input type="radio" name={q.id} value={v} checked={answers[q.id] === v}
-                          onChange={() => setAnswers({ ...answers, [q.id]: v as Likert })} />
-                        <span className="text-sm">{v}</span>
+                <div key={q.id} className="py-5">
+                  <div className="mb-2 text-ink dark:text-white">{q.text}</div>
+                  <div className="flex flex-wrap gap-4">
+                    {[1, 2, 3, 4, 5].map((v) => (
+                      <label key={v} className="inline-flex items-center gap-2 text-sm">
+                        <input
+                          type="radio"
+                          name={q.id}
+                          value={v}
+                          checked={answers[q.id] === v}
+                          onChange={() => setAnswers({ ...answers, [q.id]: v as Likert })}
+                        />
+                        <span>{v}</span>
                       </label>
                     ))}
                   </div>
                 </div>
               ))}
             </div>
-            <div className="mt-4 flex justify-between">
-              <button className="px-3 py-1 rounded border" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page===0}>Back</button>
+            <div className="mt-8 flex justify-between gap-4">
+              <button type="button" className="btn surface-muted min-h-10 px-4" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}>
+                Back
+              </button>
               {page < pages - 1 ? (
-                <button className="px-3 py-1 rounded border" onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}>Next</button>
+                <button type="button" className="btn surface-muted min-h-10 px-4" onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}>
+                  Next
+                </button>
               ) : (
-                <button className="px-3 py-1 rounded bg-green-600 text-white" onClick={() => setStep(3)}>Finish</button>
+                <button type="button" className="btn btn-primary min-h-10 px-4" onClick={() => setStep(3)}>
+                  Finish
+                </button>
               )}
             </div>
-          </Card>
+          </section>
         )}
 
         {step === 3 && (
-          <Card>
-            <div ref={reportRef} className="space-y-4">
-              <div className="h-72 w-full bg-white rounded flex items-center justify-center">
+          <section className="border-t border-border/70 pt-8 sm:pt-10">
+            <div ref={reportRef} className="space-y-6">
+              <div className="flex h-72 w-full items-center justify-center rounded-lg bg-white dark:bg-white/5">
                 <RadarLite data={chartData} max={5} />
               </div>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid gap-6 md:grid-cols-2">
                 <div>
-                  <div className="font-medium">Top strengths</div>
-                  <ul className="list-disc pl-5">
-                    {topStrengths.map((t) => (<li key={t}>{t}</li>))}
+                  <div className="font-medium text-ink dark:text-white">Top strengths</div>
+                  <ul className="mt-2 list-disc pl-5 text-ink-muted">
+                    {topStrengths.map((t) => (
+                      <li key={t}>{t}</li>
+                    ))}
                   </ul>
                 </div>
                 <div>
-                  <div className="font-medium">Blind spots</div>
-                  <ul className="list-disc pl-5">
-                    {blindSpots.map((t) => (<li key={t}>{t}</li>))}
+                  <div className="font-medium text-ink dark:text-white">Blind spots</div>
+                  <ul className="mt-2 list-disc pl-5 text-ink-muted">
+                    {blindSpots.map((t) => (
+                      <li key={t}>{t}</li>
+                    ))}
                   </ul>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button className="px-3 py-1 rounded border" onClick={saveResult}>Save</button>
-                <button className="px-3 py-1 rounded border" onClick={exportPDF}>Download PDF summary</button>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" className="btn surface-muted min-h-10 px-4" onClick={saveResult}>
+                  Save
+                </button>
+                <button type="button" className="btn surface-muted min-h-10 px-4" onClick={exportPDF}>
+                  Download PDF summary
+                </button>
               </div>
-              <div className="p-3 rounded border border-white/10 bg-white/5">
-                <div className="font-medium mb-1">What to do next</div>
-                <p className="text-sm">Check the role roadmaps that align with your strengths.</p>
-                <a className="text-blue-400 underline" href="/resources/roadmaps">Open Roadmap →</a>
+              <div className="surface-emphasis border-l-4 border-l-[var(--accent-blue)] p-4">
+                <div className="mb-1 font-medium text-ink dark:text-white">What to do next</div>
+                <p className="text-sm text-ink-muted">Check the role roadmaps that align with your strengths.</p>
+                <a className="mt-2 inline-block text-sm underline decoration-[var(--accent-blue)]" href="/resources/roadmaps">
+                  Open Roadmap →
+                </a>
               </div>
-              <div className="mt-2 text-sm">
-                <div className="flex gap-2">
-                  <Link className="text-blue-400 underline" to="/resources/roadmaps">Open Roadmap →</Link>
-                  <Link className="text-blue-400 underline" to="/career/speech-studio">Practice in Speech Studio →</Link>
-                </div>
+              <div className="flex flex-wrap gap-4 text-sm">
+                <Link className="underline decoration-[var(--accent-blue)]" to="/resources/roadmaps">
+                  Open Roadmap →
+                </Link>
+                <Link className="underline decoration-[var(--accent-blue)]" to="/career-tools/elevator-studio">
+                  Practice in Elevator Studio →
+                </Link>
               </div>
             </div>
-          </Card>
+          </section>
         )}
       </div>
     </div>

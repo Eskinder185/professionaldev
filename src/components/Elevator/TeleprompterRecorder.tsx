@@ -1,19 +1,32 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Copy, Download } from "lucide-react";
+import EmptyState from "../ui/EmptyState";
 
-export default function TeleprompterRecorder({ script }: { script: string }) {
-  const [speed, setSpeed] = useState(28); // px/s
+type Props = {
+  script: string;
+  /** When false, teleprompter shows a placeholder and recording is discouraged */
+  scriptReady: boolean;
+};
+
+export default function TeleprompterRecorder({ script, scriptReady }: Props) {
+  const [speed, setSpeed] = useState(28);
   const [font, setFont] = useState(26);
   const [mirror, setMirror] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [starting, setStarting] = useState(false);
   const [mediaURL, setMediaURL] = useState<string | undefined>();
+  const [recordErr, setRecordErr] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const mediaRef = useRef<HTMLVideoElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
 
   useEffect(() => {
-    const el = scrollerRef.current!;
-    let y = 0,
-      raf = 0;
+    if (!scriptReady) return;
+    const el = scrollerRef.current;
+    if (!el) return;
+    let y = 0;
+    let raf = 0;
     const step = () => {
       y += speed / 60;
       el.scrollTop = y;
@@ -21,75 +34,173 @@ export default function TeleprompterRecorder({ script }: { script: string }) {
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [speed, script]);
+  }, [speed, script, scriptReady]);
 
   async function startRecording() {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    if (mediaRef.current) mediaRef.current.srcObject = stream;
-    const rec = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp9,opus" });
-    const chunks: BlobPart[] = [];
-    rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
-    rec.onstop = () => {
-      const blob = new Blob(chunks, { type: rec.mimeType });
-      setMediaURL(URL.createObjectURL(blob));
-      (stream.getTracks() || []).forEach((t) => t.stop());
-    };
-    recorderRef.current = rec;
-    rec.start();
-    setRecording(true);
+    if (!scriptReady) return;
+    setRecordErr(null);
+    setStarting(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      if (mediaRef.current) mediaRef.current.srcObject = stream;
+      const rec = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp9,opus" });
+      const chunks: BlobPart[] = [];
+      rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+      rec.onstop = () => {
+        const blob = new Blob(chunks, { type: rec.mimeType });
+        setMediaURL(URL.createObjectURL(blob));
+        (stream.getTracks() || []).forEach((t) => t.stop());
+      };
+      recorderRef.current = rec;
+      rec.start();
+      setRecording(true);
+    } catch (e) {
+      console.error(e);
+      setRecordErr("Could not access camera or microphone. Check permissions and try again.");
+    } finally {
+      setStarting(false);
+    }
   }
+
   function stopRecording() {
     recorderRef.current?.stop();
     setRecording(false);
   }
 
+  async function copyScript() {
+    try {
+      await navigator.clipboard.writeText(script);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* ignore */
+    }
+  }
+
   return (
-    <div className="grid lg:grid-cols-2 gap-6">
-      <div className="surface p-4">
-        <div className="flex items-center gap-3 mb-3">
-          <label className="text-sm">Speed</label>
-          <input type="range" min={10} max={60} value={speed} onChange={(e) => setSpeed(+e.target.value)} />
-          <label className="text-sm ml-3">Font</label>
-          <input type="range" min={18} max={40} value={font} onChange={(e) => setFont(+e.target.value)} />
-          <label className="text-sm ml-3 inline-flex items-center gap-1">
-            <input type="checkbox" checked={mirror} onChange={(e) => setMirror(e.target.checked)} /> Mirror
+    <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+      <div className="space-y-4 border-t border-black/[0.07] py-8 dark:border-white/[0.09] sm:py-10">
+        <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
+          <div className="min-w-0 flex-1 space-y-1">
+            <label htmlFor="tp-speed" className="text-sm font-medium text-ink dark:text-white">
+              Scroll speed
+            </label>
+            <input
+              id="tp-speed"
+              type="range"
+              min={10}
+              max={60}
+              value={speed}
+              className="w-full accent-[rgb(var(--tw-accent))]"
+              disabled={!scriptReady}
+              onChange={(e) => setSpeed(+e.target.value)}
+            />
+          </div>
+          <div className="min-w-0 flex-1 space-y-1">
+            <label htmlFor="tp-font" className="text-sm font-medium text-ink dark:text-white">
+              Font size
+            </label>
+            <input
+              id="tp-font"
+              type="range"
+              min={18}
+              max={40}
+              value={font}
+              className="w-full accent-[rgb(var(--tw-accent))]"
+              disabled={!scriptReady}
+              onChange={(e) => setFont(+e.target.value)}
+            />
+          </div>
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-ink dark:text-white">
+            <input
+              type="checkbox"
+              checked={mirror}
+              disabled={!scriptReady}
+              onChange={(e) => setMirror(e.target.checked)}
+              className="rounded border-black/20 dark:border-white/20"
+            />
+            Mirror text
           </label>
         </div>
 
-        <div className="h-[320px] overflow-y-auto surface-muted p-6 rounded-xl" ref={scrollerRef} style={{ direction: mirror ? "rtl" : "ltr" }}>
-          <div className="leading-[1.6] tracking-wide" style={{ fontSize: font, transform: mirror ? "scaleX(-1)" : "none" }}>
-            {script.split(" ").map((w, i) => (
-              <span key={i} className="mx-[4px]">
-                {w}
-              </span>
-            ))}
-          </div>
+        <div
+          className="h-[320px] overflow-y-auto border-y border-black/[0.07] bg-canvas-subtle/30 py-6 dark:border-white/10 dark:bg-white/[0.02]"
+          ref={scrollerRef}
+          style={{ direction: mirror ? "rtl" : "ltr" }}
+          aria-label="Teleprompter text"
+        >
+          {!scriptReady ? (
+            <EmptyState
+              className="min-h-[240px] border-0 bg-transparent py-12 dark:bg-transparent"
+              title="Complete the form above"
+              hint="Once your pitch is generated, it will scroll here automatically."
+            />
+          ) : (
+            <div
+              className="leading-[1.6] tracking-wide text-ink dark:text-white"
+              style={{ fontSize: font, transform: mirror ? "scaleX(-1)" : "none" }}
+            >
+              {script.split(" ").map((w, i) => (
+                <span key={i} className="mx-[4px]">
+                  {w}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="mt-3 flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="btn btn-primary min-h-10 gap-2 px-4"
+            onClick={copyScript}
+            disabled={!scriptReady}
+          >
+            <Copy className="h-4 w-4 shrink-0" aria-hidden />
+            {copied ? "Copied" : "Copy script"}
+          </button>
           {!recording ? (
-            <button className="btn btn-anim btn-pink" onClick={startRecording}>
-              Start recording
+            <button
+              type="button"
+              className="btn surface-muted min-h-10 px-4"
+              onClick={startRecording}
+              disabled={!scriptReady || starting}
+            >
+              {starting ? "Starting…" : "Start recording"}
             </button>
           ) : (
-            <button className="btn" onClick={stopRecording}>
-              Stop & save
+            <button type="button" className="btn surface-muted min-h-10 px-4" onClick={stopRecording}>
+              Stop &amp; save clip
             </button>
           )}
-          {mediaURL && (
-            <a className="btn" href={mediaURL} download="elevator-practice.webm">
+          {mediaURL ? (
+            <a className="btn surface-muted flex min-h-10 items-center gap-2 px-4" href={mediaURL} download="elevator-practice.webm">
+              <Download className="h-4 w-4 shrink-0" aria-hidden />
               Download
             </a>
-          )}
+          ) : null}
         </div>
-        <div className="text-xs opacity-70 mt-2">Tip: Aim for 30–45s. Practice until it feels smooth and natural.</div>
+        {copied ? (
+          <p className="text-sm font-medium text-accent" role="status">
+            Script copied to clipboard
+          </p>
+        ) : null}
+        {recordErr ? (
+          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+            {recordErr}
+          </p>
+        ) : null}
+        <p className="text-caption text-ink-muted">Tip: Aim for 30–45 seconds. Repeat until it feels conversational, not memorized.</p>
       </div>
 
-      <div className="surface p-4">
-        <video ref={mediaRef} className="w-full rounded-xl" autoPlay muted playsInline />
-        <div className="text-sm opacity-80 mt-2">Camera preview (records when you click “Start”).</div>
+      <div className="space-y-3 border-t border-black/[0.07] py-8 dark:border-white/[0.09] sm:py-10 lg:border-l lg:border-t-0 lg:pl-8 lg:py-0">
+        <h3 className="text-sm font-semibold text-ink dark:text-white">Camera preview</h3>
+        <p className="text-sm text-ink-muted">Live preview while recording. Audio and video are processed locally.</p>
+        <video ref={mediaRef} className="aspect-video w-full rounded-[var(--card-radius)] bg-black/80 object-cover" autoPlay muted playsInline />
+        {!recording && !mediaURL ? (
+          <p className="text-caption text-ink-faint">Press Start recording to enable the camera.</p>
+        ) : null}
       </div>
     </div>
   );
 }
-

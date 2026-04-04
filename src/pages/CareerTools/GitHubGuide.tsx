@@ -1,5 +1,6 @@
 
 import React from "react";
+import PageHeader from "../../components/ui/PageHeader";
 
 const RepoReadmeTemplate = [
   '# Project Title',
@@ -53,13 +54,14 @@ const ProfileReadmeTemplate = [
 
 export default function GitHubGuide() {
   return (
-    <div className="space-y-6">
-      <header className="surface-muted p-6">
-        <h1 className="brand-heading text-2xl font-semibold">GitHub Profile Guide</h1>
-        <p>Stand out with a profile README, clean repos, and pinned projects that show impact.</p>
-      </header>
+    <div className="space-y-0">
+      <PageHeader
+        eyebrow="Career Tools"
+        title="GitHub Profile Guide"
+        sub="Stand out with a profile README, clean repos, and pinned projects that show impact."
+      />
 
-      <section className="surface p-5 hover-glow" style={{ ["--glow" as any]:"var(--accent-orange)" }}>
+      <section className="border-t border-border/70 pt-8 sm:pt-10">
         <h2 className="font-semibold text-lg">1) Create the special “profile repo”</h2>
         <ol className="list-decimal pl-5 mt-2 space-y-1 text-sm">
           <li>Find your GitHub username (e.g., <b>eskinder185</b>).</li>
@@ -67,13 +69,13 @@ export default function GitHubGuide() {
           <li>Initialize with a README. GitHub will mark it as your profile README.</li>
           <li>Edit the README with the template below, commit, and push.</li>
         </ol>
-        <div className="surface-muted p-4 mt-3 rounded-xl">
+        <div className="surface-emphasis border-l-4 border-l-[var(--accent-orange)] p-4 mt-4">
           <h3 className="font-semibold mb-2">Profile README template</h3>
           <pre className="whitespace-pre-wrap text-sm">{ProfileReadmeTemplate}</pre>
         </div>
       </section>
 
-      <section className="surface p-5 hover-glow" style={{ ["--glow" as any]:"var(--accent-blue)" }}>
+      <section className="border-t border-border/70 pt-8 sm:pt-10">
         <h2 className="font-semibold text-lg">2) Pin 6 repos (show your best work)</h2>
         <ul className="list-disc pl-5 mt-2 space-y-1 text-sm">
           <li>2 polished projects (live demo + screenshots).</li>
@@ -83,14 +85,14 @@ export default function GitHubGuide() {
         </ul>
       </section>
 
-      <section className="surface p-5 hover-glow">
+      <section className="border-t border-border/70 pt-8 sm:pt-10">
         <h2 className="font-semibold text-lg">3) Repo README structure</h2>
-        <div className="surface-muted p-4 mt-3 rounded-xl">
+        <div className="surface-emphasis border-l-4 border-l-[var(--accent-blue)] p-4 mt-4">
           <pre className="whitespace-pre-wrap text-sm">{RepoReadmeTemplate}</pre>
         </div>
       </section>
 
-      <section className="surface p-5 hover-glow">
+      <section className="border-t border-border/70 pt-8 sm:pt-10 pb-2">
         <h2 className="font-semibold text-lg">4) Hygiene & discoverability</h2>
         <ul className="list-disc pl-5 mt-2 space-y-1 text-sm">
           <li><b>Topics</b>: add 4–8 keywords (react, typescript, vite, tailwind, …).</li>

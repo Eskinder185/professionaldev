@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import PageHeader from "../../components/ui/PageHeader";
 
 type Mode = "STAR" | "CARL";
 export default function StoryBuilder() {
@@ -17,16 +18,14 @@ export default function StoryBuilder() {
   }, [mode, S, T, A, R, L]);
 
   return (
-    <div className="space-y-6">
-      <header className="surface-muted p-5">
-        <h1 className="text-2xl font-semibold brand-heading">Interview Stories: STAR & CARL</h1>
-        <p>
-          STAR = Situation, Task, Action, Result. CARL = Context, Action, Result, Learning. Use CARL when you want to
-          highlight growth/insight.
-        </p>
-      </header>
+    <div className="space-y-0">
+      <PageHeader
+        eyebrow="Career Tools"
+        title="Interview Stories: STAR & CARL"
+        sub="STAR = Situation, Task, Action, Result. CARL = Context, Action, Result, Learning. Use CARL when you want to highlight growth/insight."
+      />
 
-      <div className="surface p-5">
+      <section className="border-t border-border/70 pt-8 sm:pt-10">
         <div className="flex gap-2 mb-4">
           <button className={`btn ${mode === "STAR" ? "btn-anim btn-pink" : ""}`} onClick={() => setMode("STAR")}>
             STAR
@@ -36,7 +35,7 @@ export default function StoryBuilder() {
           </button>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-3">
             <input className="input" placeholder={mode === "STAR" ? "Situation (context)" : "Context"} value={S} onChange={(e) => setS(e.target.value)} />
             {mode === "STAR" && (
@@ -48,18 +47,17 @@ export default function StoryBuilder() {
               <input className="input" placeholder="Learning (insight you took forward)" value={L} onChange={(e) => setL(e.target.value)} />
             )}
           </div>
-          <div className="surface-muted p-4">
+          <div className="surface-emphasis border-l-4 border-l-[var(--accent-pink)] p-4">
             <h3 className="font-semibold mb-2">Preview</h3>
             <pre className="whitespace-pre-wrap text-[0.95rem]">{output}</pre>
           </div>
         </div>
 
-        <div className="mt-4 text-sm opacity-80">
+        <p className="mt-6 text-sm opacity-80">
           Tips: 1) Start with the outcome. 2) Use metrics (%, $, time). 3) Keep it to 60–90s. 4) Phrase actions with
           impact verbs.
-        </div>
-      </div>
+        </p>
+      </section>
     </div>
   );
 }
-

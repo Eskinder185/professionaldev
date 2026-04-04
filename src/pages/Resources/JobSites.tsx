@@ -1,4 +1,5 @@
 import React from "react";
+import PageHeader from "../../components/ui/PageHeader";
 
 type Site = { name: string; desc: string; url: string };
 
@@ -52,15 +53,14 @@ const SITES: Site[] = [
 
 export default function JobSites() {
   return (
-    <div className="space-y-6">
-      <header className="surface-muted p-6">
-        <h1 className="brand-heading text-2xl font-semibold">Job Sites</h1>
-        <p>
-          Explore quality job boards. Tip: save searches + set alerts; tailor your résumé to the posting.
-        </p>
-      </header>
+    <div className="space-y-0">
+      <PageHeader
+        eyebrow="Resources"
+        title="Job Sites"
+        sub="Explore quality job boards. Tip: save searches + set alerts; tailor your résumé to the posting."
+      />
 
-      <div className="surface p-2 md:p-4">
+      <section className="border-t border-border/70 pt-8 sm:pt-10">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
@@ -85,8 +85,7 @@ export default function JobSites() {
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
-

@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 
 /**
  * Lightweight PD Coach:
@@ -112,7 +111,7 @@ export default function PDCoach() {
         "• Data: Python+SQL+Stats → ML basics → deploy one model.",
         "• Security: Security+ → Cloud Sec (AWS/Azure) → AppSec (OWASP).",
         "Open: Certifications & Learning.",
-        linkTo("/Resources/Certs")
+        linkTo("/resources/certs")
       ].join("\n");
     }
 
@@ -129,31 +128,41 @@ export default function PDCoach() {
     <>
       {/* Floating button */}
       <button
-        className="coach-fab btn btn-anim btn-pink"
+        type="button"
+        className="coach-fab"
         onClick={()=>setOpen(o=>!o)}
         aria-expanded={open}
+        aria-controls="pd-coach-panel"
+        id="pd-coach-toggle"
         title={open ? "Close PD Coach" : "Open PD Coach"}
+        aria-label={open ? "Close PD Coach assistant" : "Open PD Coach assistant"}
       >
         {open ? "Close" : "PD Coach"}
       </button>
 
       {/* Panel */}
       {open && (
-        <div className="coach-panel surface p-4 hover-glow">
-          <div className="flex items-center justify-between">
-            <div className="font-semibold">Professional Development Coach</div>
-            <button className="btn" onClick={()=>setOpen(false)}>×</button>
+        <div className="coach-panel p-4" id="pd-coach-panel" role="region" aria-labelledby="pd-coach-title">
+          <div className="flex shrink-0 items-center justify-between gap-2">
+            <div id="pd-coach-title" className="text-sm font-semibold text-ink dark:text-white">
+              PD Coach
+            </div>
+            <button type="button" className="btn min-h-9 min-w-9 px-0" onClick={()=>setOpen(false)} aria-label="Close coach">
+              ×
+            </button>
           </div>
 
           {/* Suggestions */}
-          <div className="mt-2 flex flex-wrap gap-2">
-            {SUGGESTIONS.map(s => (
-              <button key={s} className="chip" onClick={()=>send(s)}>{s}</button>
+          <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Suggested prompts">
+            {SUGGESTIONS.map((s) => (
+              <button key={s} type="button" className="chip-action max-w-full text-left" onClick={() => send(s)}>
+                <span className="line-clamp-2">{s}</span>
+              </button>
             ))}
           </div>
 
           {/* Messages */}
-          <div className="mt-3 coach-scroll">
+          <div className="mt-3 coach-scroll" role="log" aria-live="polite" aria-relevant="additions">
             {msgs.map((m,i)=>(
               <div key={i} className={`mb-2 ${m.role==="user"?"text-right":""}`}>
                 <div className={`inline-block max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
@@ -167,14 +176,21 @@ export default function PDCoach() {
           </div>
 
           {/* Input */}
-          <form className="mt-2 flex gap-2" onSubmit={(e)=>{e.preventDefault(); send(input);}}>
+          <form className="mt-3 flex shrink-0 flex-col gap-2 sm:flex-row" onSubmit={(e)=>{e.preventDefault(); send(input);}}>
+            <label htmlFor="pd-coach-input" className="sr-only">
+              Message to PD Coach
+            </label>
             <input
-              className="input flex-1"
-              placeholder="Ask about résumé, LinkedIn, GitHub, interviews, certs..."
+              id="pd-coach-input"
+              className="input min-h-11 flex-1"
+              placeholder="Ask about résumé, LinkedIn, GitHub, interviews, certs…"
               value={input}
-              onChange={e=>setInput(e.target.value)}
+              onChange={(e) => setInput(e.target.value)}
+              autoComplete="off"
             />
-            <button className="btn btn-anim btn-pink" type="submit">Send</button>
+            <button className="btn btn-primary min-h-11 shrink-0 px-5 sm:px-4" type="submit">
+              Send
+            </button>
           </form>
         </div>
       )}

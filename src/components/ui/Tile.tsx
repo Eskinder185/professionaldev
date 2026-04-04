@@ -1,8 +1,19 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import HubCard from "./HubCard";
+import { BookOpen, Briefcase, Clock, Globe } from "lucide-react";
 
+const FALLBACK_ICONS = [BookOpen, Briefcase, Clock, Globe] as const;
+
+/**
+ * @deprecated Prefer `HubCard` directly. Wrapper kept for older imports.
+ */
 export default function Tile({
-  title, desc, tags, to, href, className = ""
+  title,
+  desc,
+  tags,
+  to,
+  href,
+  className = "",
 }: {
   title: string;
   desc: string;
@@ -11,22 +22,17 @@ export default function Tile({
   href?: string;
   className?: string;
 }) {
-  const Button = () =>
-    href ? (
-      <a href={href} target="_blank" rel="noreferrer" className="btn btn-anim btn-pink">Open tool →</a>
-    ) : (
-      <Link to={to || "#"} className="btn btn-anim btn-pink">Open tool →</Link>
-    );
-
+  const Icon = FALLBACK_ICONS[Math.abs(title.length) % FALLBACK_ICONS.length];
   return (
-    <div className={`surface p-5 hover-glow ${className}`}>
-      <h3 className="text-lg font-semibold">{title}</h3>
-      <p className="mt-1">{desc}</p>
-      {tags?.length ? (
-        <div className="mt-3 flex flex-wrap gap-2">{tags.map(t => <span key={t} className="chip">{t}</span>)}</div>
-      ) : null}
-      <div className="mt-4"><Button /></div>
-    </div>
+    <HubCard
+      title={title}
+      description={desc}
+      tags={tags}
+      to={to}
+      href={href}
+      ctaLabel={href ? "Open link" : "Open"}
+      className={className}
+      icon={<Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />}
+    />
   );
 }
-

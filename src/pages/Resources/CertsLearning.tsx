@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import SectionHeader from "../../components/SectionHeader";
-import Card from "../../components/Card";
+import PageHeader from "../../components/ui/PageHeader";
 import { CERT_PATHS, Path } from "../../data/resources/certs";
 
 type CheckMap = Record<string, boolean>;
@@ -65,65 +64,132 @@ export default function CertsLearning() {
 
   return (
     <div className="relative">
-      <div className="relative z-10 max-w-6xl mx-auto px-4 py-10 space-y-6">
-        <SectionHeader title="Certifications & Learning" subtitle="Pick a path, plan by week, and track progress." />
+      <div className="relative z-10 mx-auto max-w-6xl space-y-0 px-4 py-10">
+        <PageHeader
+          eyebrow="Resources"
+          title="Certifications & learning planner"
+          sub="Pick a path, plan by week, and track progress."
+        />
 
-        <Card>
+        <section className="border-t border-border/70 pt-8 sm:pt-10">
           <div className="flex flex-wrap gap-2">
             {CERT_PATHS.map((p) => (
-              <button key={p.id} className={`px-3 py-1 rounded border ${p.id===current.id?'bg-white/10':''}`} onClick={()=>{ setCurrent(p); setDone(()=>{ try { return JSON.parse(localStorage.getItem(`pd:resources:certs:${p.id}:done`) || "{}"); } catch { return {}; } }); }}> {p.title} </button>
+              <button
+                key={p.id}
+                type="button"
+                className={`btn min-h-10 px-3 ${p.id === current.id ? "btn-primary" : "surface-muted"}`}
+                onClick={() => {
+                  setCurrent(p);
+                  setDone(() => {
+                    try {
+                      return JSON.parse(localStorage.getItem(`pd:resources:certs:${p.id}:done`) || "{}");
+                    } catch {
+                      return {};
+                    }
+                  });
+                }}
+              >
+                {p.title}
+              </button>
             ))}
           </div>
-          <div className="mt-3 flex items-center gap-3 text-sm">
-            <label className="flex items-center gap-2">Hours/week<input aria-label="Hours per week" type="number" min={1} className="w-20 rounded p-1 border border-white/10 bg-white/5" value={hoursPerWeek} onChange={(e)=>setHoursPerWeek(Math.max(1, Number(e.target.value)||1))} /></label>
-            <div>Estimate: {weeks} weeks (finish by {finishBy})</div>
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-ink-muted">
+            <label className="flex items-center gap-2">
+              Hours/week
+              <input
+                aria-label="Hours per week"
+                type="number"
+                min={1}
+                className="input w-24 py-1"
+                value={hoursPerWeek}
+                onChange={(e) => setHoursPerWeek(Math.max(1, Number(e.target.value) || 1))}
+              />
+            </label>
+            <span>
+              Estimate: {weeks} weeks (finish by {finishBy})
+            </span>
           </div>
-          <div className="mt-3">
-            <div className="h-2 bg-white/10 rounded"><div className="h-2 bg-blue-600 rounded" style={{ width: `${progress}%` }} /></div>
-            <div className="text-xs opacity-70 mt-1">Progress: {progress}%</div>
+          <div className="mt-4">
+            <div className="h-1.5 overflow-hidden rounded-full bg-border/40">
+              <div className="h-full rounded-full bg-[var(--accent-blue)]" style={{ width: `${progress}%` }} />
+            </div>
+            <div className="mt-1 text-xs text-ink-muted">Progress: {progress}%</div>
           </div>
-        </Card>
+        </section>
 
-        <Card>
-          <div className="font-medium mb-2">Weekly plan</div>
-          <div ref={reportRef}>
+        <section className="border-t border-border/70 pt-8 sm:pt-10">
+          <h2 className="mb-4 font-medium text-ink dark:text-white">Weekly plan</h2>
+          <div ref={reportRef} className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left"><th>Week</th><th>Step</th><th>Hours</th><th>Type</th><th>Done</th></tr>
+                <tr className="border-b border-border/70 text-left">
+                  <th className="py-2 pr-3">Week</th>
+                  <th className="py-2 pr-3">Step</th>
+                  <th className="py-2 pr-3">Hours</th>
+                  <th className="py-2 pr-3">Type</th>
+                  <th className="py-2">Done</th>
+                </tr>
               </thead>
               <tbody>
                 {schedule.map((row, i) => (
-                  <tr key={i} className="border-b border-white/10">
-                    <td className="py-1">{row.week}</td>
-                    <td className="py-1">{row.title}</td>
-                    <td className="py-1">{row.hours}</td>
-                    <td className="py-1 capitalize">{row.type}</td>
-                    <td className="py-1"><input type="checkbox" checked={!!done[row.stepId]} onChange={(e)=>setDone({...done, [row.stepId]: e.target.checked})} aria-label={`Mark ${row.title} done`} /></td>
+                  <tr key={i} className="border-b border-border/50">
+                    <td className="py-2 pr-3">{row.week}</td>
+                    <td className="py-2 pr-3">{row.title}</td>
+                    <td className="py-2 pr-3">{row.hours}</td>
+                    <td className="py-2 pr-3 capitalize">{row.type}</td>
+                    <td className="py-2">
+                      <input
+                        type="checkbox"
+                        checked={!!done[row.stepId]}
+                        onChange={(e) => setDone({ ...done, [row.stepId]: e.target.checked })}
+                        aria-label={`Mark ${row.title} done`}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <div className="mt-3"><button className="px-3 py-1 rounded border" onClick={exportPDF}>Download plan as PDF</button></div>
-        </Card>
+          <div className="mt-4">
+            <button type="button" className="btn surface-muted min-h-10 px-4" onClick={exportPDF}>
+              Download plan as PDF
+            </button>
+          </div>
+        </section>
 
-        <Card>
-          <div className="font-medium mb-2">Resources</div>
-          <div className="flex gap-2 mb-2">
-            <button className="px-3 py-1 rounded border" onClick={()=>setLinks([...links,{title:"",url:""}])}>Add link</button>
+        <section className="border-t border-border/70 pt-8 sm:pt-10 pb-2">
+          <h2 className="mb-4 font-medium text-ink dark:text-white">Resources</h2>
+          <div className="mb-3">
+            <button type="button" className="btn surface-muted min-h-10 px-4" onClick={() => setLinks([...links, { title: "", url: "" }])}>
+              Add link
+            </button>
           </div>
           <div className="flex flex-wrap gap-2">
             {links.map((r, i) => (
-              <input key={i} className="rounded p-2 border border-white/10 bg-white/5" placeholder="Title — URL" value={`${r.title}|${r.url}`}
-                onChange={(e)=>{ const [t,u] = e.target.value.split('|'); const copy=[...links]; copy[i] = { title: t||"", url: u||"" }; setLinks(copy); }} />
+              <input
+                key={i}
+                className="input min-w-[200px] flex-1 py-2"
+                placeholder="Title — URL"
+                value={`${r.title}|${r.url}`}
+                onChange={(e) => {
+                  const [t, u] = e.target.value.split("|");
+                  const copy = [...links];
+                  copy[i] = { title: t || "", url: u || "" };
+                  setLinks(copy);
+                }}
+              />
             ))}
           </div>
-          <div className="mt-2 flex gap-2 flex-wrap">
-            {links.filter(l=>l.title && l.url).map((l, i) => (
-              <a key={i} className="px-2 py-1 rounded-full text-xs border border-white/15 bg-white/10" href={l.url} target="_blank" rel="noreferrer">{l.title}</a>
-            ))}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {links
+              .filter((l) => l.title && l.url)
+              .map((l, i) => (
+                <a key={i} className="text-sm underline decoration-[var(--accent-blue)]" href={l.url} target="_blank" rel="noreferrer">
+                  {l.title}
+                </a>
+              ))}
           </div>
-        </Card>
+        </section>
       </div>
     </div>
   );
