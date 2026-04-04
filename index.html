@@ -10,12 +10,18 @@
           var k = "pd-theme";
           var t = localStorage.getItem(k);
           if (!t) t = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-          if (t === "light") document.documentElement.classList.add("light");
+          if (t === "light") {
+            document.documentElement.classList.add("light");
+            document.documentElement.classList.remove("dark");
+          } else {
+            document.documentElement.classList.add("dark");
+            document.documentElement.classList.remove("light");
+          }
         } catch (e) {}
       })();
     </script>
-    <script type="module" crossorigin src="/professionaldev/assets/index-XPoMG9Ym.js"></script>
-    <link rel="stylesheet" crossorigin href="/professionaldev/assets/index-2Z8VciQX.css">
+    <script type="module" crossorigin src="/professionaldev/assets/index-D-Lw1Lr7.js"></script>
+    <link rel="stylesheet" crossorigin href="/professionaldev/assets/index-W7Btm-el.css">
   </head>
   <body>
     <div id="root"></div>
