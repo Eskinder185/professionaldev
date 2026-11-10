@@ -32,7 +32,9 @@ export default function InterviewSim() {
   useEffect(() => {
     try {
       localStorage.setItem("interviewSim:autoRecord", autoRecord ? "1" : "0");
-    } catch {}
+    } catch {
+      // Recording practice still works when preferences cannot be persisted.
+    }
   }, [autoRecord]);
 
   const start = async () => {
@@ -46,7 +48,7 @@ export default function InterviewSim() {
     const it = copy[idx];
     copy[idx] = { ...it, endedAt: Date.now() };
     setItems(copy);
-    if (autoRecord) await rec.stop(`Q${idx + 1}`);
+    if (autoRecord) await rec.stop();
   };
   const next = () => setIdx((i) => Math.min(items.length - 1, i + 1));
   const prev = () => setIdx((i) => Math.max(0, i - 1));

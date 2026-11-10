@@ -34,7 +34,7 @@ export default function CertsLearning() {
     const out: { week: number; stepId: string; title: string; hours: number; type: string }[] = [];
     let w = 1, rem = hoursPerWeek;
     for (const s of current.steps) {
-      let h = s.hours; let title = s.title; let id = s.id;
+      let h = s.hours; const title = s.title; const id = s.id;
       while (h > 0) {
         const take = Math.min(h, rem);
         out.push({ week: w, stepId: id, title, hours: take, type: s.type });

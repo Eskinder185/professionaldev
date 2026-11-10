@@ -25,7 +25,7 @@ export default function BackgroundConstellations() {
       ctx.fillRect(0, 0, w, h);
     }
 
-    let N = Math.min(72, Math.floor((window.innerWidth * window.innerHeight) / 32000));
+    const N = Math.min(72, Math.floor((window.innerWidth * window.innerHeight) / 32000));
     const pts = Array.from({ length: N }, () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,

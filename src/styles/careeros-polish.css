@@ -1,0 +1,31 @@
+.career-job-card strong,.career-job-card span,.career-job-detail h2,.career-application-card strong,.career-application-card>span { overflow-wrap:anywhere; }
+.career-job-mobile-bar,.career-job-mobile-back { display:none; }
+.career-quick-create,.career-secondary-button,.career-danger-button { min-height:44px; height:auto; padding:10px 14px; justify-content:center; }
+.career-collapse,.career-icon-button,.career-avatar { width:44px; height:44px; }
+.career-interview-modes button,.career-view-tabs button,.career-resume-tabs button { min-height:44px; }
+.career-job-actions button,.career-job-actions a { white-space:normal; text-align:center; }
+.career-recording-status { display:inline-flex; align-items:center; gap:7px; width:100%; color:#b91c1c; font-size:12px; font-weight:700; }
+.career-recording-status::before { content:""; width:8px; height:8px; border-radius:50%; background:currentColor; }
+.career-interview-controls button:disabled { opacity:.5; cursor:not-allowed; }
+.career-upload:focus-within,.career-file-upload:focus-within { outline:2px solid var(--career-accent); outline-offset:3px; }
+@media(max-width:750px) {
+  .career-job-mobile-bar { display:flex; align-items:center; gap:8px; }
+  .career-job-mobile-bar input { flex:1; min-width:0; }
+  .career-jobs-layout { display:block; }
+  .career-filter-panel { display:none; margin:12px 0; }
+  .career-filter-panel.is-open { display:grid; }
+  .career-job-list { margin-top:12px; }
+  .career-job-detail { display:none; margin-top:12px; }
+  .career-jobs-layout.is-detail-open .career-job-list,.career-jobs-layout.is-detail-open .career-filter-panel,.career-jobs-layout.is-detail-open .career-job-mobile-bar { display:none; }
+  .career-jobs-layout.is-detail-open .career-job-detail { display:block; min-height:calc(100dvh - 180px); }
+  .career-job-mobile-back { display:inline-flex; align-items:center; margin-bottom:15px; }
+  .career-metrics .career-metric:last-child:nth-child(odd) { grid-column:1/-1; }
+}
+@media(max-width:430px) {
+  .career-feature .career-quick-create,.career-dashboard .career-quick-create { width:auto; padding:10px 14px; }
+  .career-topbar .career-quick-create { width:44px; min-width:44px; padding:0; }
+  .career-topbar .career-search-trigger { width:44px; min-width:44px; }
+  .career-topbar .career-quick-create span { display:none; }
+  .career-form-dialog { max-height:calc(100dvh - 32px); }
+}
+@media(max-width:360px) { .career-topbar .career-popover-wrap { display:none; } }

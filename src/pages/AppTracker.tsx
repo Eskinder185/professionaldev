@@ -48,7 +48,9 @@ export default function AppTracker() {
   useEffect(() => {
     try {
       localStorage.setItem("appTracker:items", JSON.stringify(items));
-    } catch {}
+    } catch {
+      // Keep the in-memory tracker usable if browser storage is unavailable.
+    }
   }, [items]);
 
   const add = () => {

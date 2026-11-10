@@ -41,12 +41,12 @@ export function useMediaRecorder(constraints: MediaStreamConstraints = { audio: 
       rec.onstart = () => {
         setStatus("recording");
         startAtRef.current = Date.now();
-        timerRef.current && window.clearInterval(timerRef.current);
+        if (timerRef.current) window.clearInterval(timerRef.current);
         timerRef.current = window.setInterval(() => setElapsedMs(Date.now() - startAtRef.current), 250);
       };
       rec.onstop = () => {
         setStatus("stopped");
-        timerRef.current && window.clearInterval(timerRef.current);
+        if (timerRef.current) window.clearInterval(timerRef.current);
         const b = new Blob(chunksRef.current, { type: mimeType });
         setBlob(b);
         const u = URL.createObjectURL(b);

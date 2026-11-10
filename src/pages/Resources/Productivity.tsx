@@ -17,7 +17,7 @@ export default function Productivity() {
           return parsed as Settings;
         }
       }
-    } catch {}
+    } catch { /* Keep the existing fallback when audio or storage is unavailable. */ }
     return { focusMin: 25, shortMin: 5, longMin: 15, cyclesBeforeLong: 4, autoStartNext: true };
   });
   const [mode, setMode] = useState<"Focus" | "Short" | "Long">("Focus");
@@ -76,7 +76,7 @@ export default function Productivity() {
 
   function toggleAmbient(kind: typeof ambient) {
     setAmbient(kind);
-    try { oscRef.current?.close(); } catch {}
+    try { oscRef.current?.close(); } catch { /* Keep the existing fallback when audio or storage is unavailable. */ }
     if (kind === "off") return;
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination);

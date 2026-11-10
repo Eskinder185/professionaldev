@@ -13,13 +13,17 @@ export function getLocal<T = unknown>(key: string, fallback: T): T {
 export function setLocal<T = unknown>(key: string, value: T) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
-  } catch {}
+  } catch {
+    // Browser storage can be unavailable in privacy-restricted contexts.
+  }
 }
 
 export function removeLocal(key: string) {
   try {
     localStorage.removeItem(key);
-  } catch {}
+  } catch {
+    // Browser storage can be unavailable in privacy-restricted contexts.
+  }
 }
 
 export function useLocal<T = unknown>(key: string, initial: T) {

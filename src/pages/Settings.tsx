@@ -1,4 +1,4 @@
-import { listKeys, getLocal, setLocal, removeLocal } from "../hooks/useLocal";
+import { getLocal, useLocal } from "../hooks/useLocal";
 import PageHeader from "../components/ui/PageHeader";
 
 async function idbOpen() {
@@ -14,17 +14,19 @@ async function idbOpen() {
 }
 
 async function listVideoKeys() {
-  const history = getLocal<any[]>("pd:speech:history", []);
-  return history.map((h) => h.blobKey).filter(Boolean);
+  const history = getLocal<unknown[]>("pd:speech:history", []);
+  return history.flatMap((item) => {
+    if (typeof item !== "object" || item === null || !("blobKey" in item)) return [];
+    return typeof item.blobKey === "string" ? [item.blobKey] : [];
+  });
 }
 
+const projectKey = (key: string) => key.startsWith("pd:") || key.startsWith("pd_") || key.startsWith("appTracker:") || key.startsWith("starBuilder:") || key.startsWith("interviewSim:") || key === "pd-theme";
+const projectKeys = () => Array.from({ length: localStorage.length }, (_, index) => localStorage.key(index)).filter((key): key is string => Boolean(key && projectKey(key))).sort();
+
 async function exportData() {
-  const keys = listKeys("pd:");
-  const data: Record<string, unknown> = {};
-  for (const k of keys) {
-    data[k] = getLocal(k, null);
-  }
-  data["pd:videos"] = await listVideoKeys();
+  const entries = Object.fromEntries(projectKeys().map((key) => [key, localStorage.getItem(key)]));
+  const data = { format: "professionaldev-local-storage-v2", entries, videoBlobKeys: await listVideoKeys() };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -36,17 +38,24 @@ async function exportData() {
 
 async function importData(file: File, onWarn: (msg: string) => void) {
   const text = await file.text();
-  const obj = JSON.parse(text);
-  const keys = Object.keys(obj).filter((k) => k.startsWith("pd:"));
-  keys.forEach((k) => setLocal(k, obj[k]));
-  const listed = await listVideoKeys();
-  const expected: string[] = Array.isArray(obj["pd:videos"]) ? obj["pd:videos"] : [];
-  const missing = expected.filter((k) => !listed.includes(k));
-  if (missing.length) onWarn(`Warning: ${missing.length} video blobs referenced but not found.`);
+  const obj: unknown = JSON.parse(text);
+  if (!obj || typeof obj !== "object") throw new Error("This file does not contain a data object.");
+  const record = obj as Record<string, unknown>;
+  const current = record.format === "professionaldev-local-storage-v2";
+  const entries = current ? record.entries : record;
+  if (!entries || typeof entries !== "object" || Array.isArray(entries)) throw new Error("This file has no valid data entries.");
+  const imported = Object.entries(entries).filter(([key]) => projectKey(key));
+  if (!imported.length) throw new Error("No ProfessionalDev data was found in this file.");
+  if (current && imported.some(([, value]) => typeof value !== "string")) throw new Error("The backup contains an invalid entry.");
+  if (!confirm(`Import ${imported.length} data entries? Existing entries with the same names will be replaced.`)) return;
+  imported.forEach(([key, value]) => localStorage.setItem(key, current ? value as string : JSON.stringify(value)));
+  const expected: string[] = Array.isArray(record.videoBlobKeys) ? record.videoBlobKeys : Array.isArray(record["pd:videos"]) ? record["pd:videos"] : [];
+  if (expected.length) onWarn(`This backup references ${expected.length} video recording(s), but does not contain their video files.`);
+  location.reload();
 }
 
 async function resetAll() {
-  for (const k of listKeys("pd:")) removeLocal(k);
+  for (const key of projectKeys()) localStorage.removeItem(key);
   const db = await idbOpen();
   await new Promise<void>((res, rej) => {
     const tx = db.transaction("blobs", "readwrite");
@@ -60,8 +69,8 @@ async function resetAll() {
 const block = "border-t border-black/[0.07] py-10 dark:border-white/[0.09] sm:py-12";
 
 export default function Settings() {
-  const reduced = getLocal<boolean>("pd:settings:reducedMotion", false);
-  const toggleReduced = () => setLocal("pd:settings:reducedMotion", !reduced);
+  const [reduced, setReduced] = useLocal<boolean>("pd:settings:reducedMotion", false);
+  const toggleReduced = () => setReduced((value) => !value);
 
   return (
     <div className="mx-auto max-w-4xl space-y-0 pb-16">
@@ -78,12 +87,6 @@ export default function Settings() {
             className={`btn min-h-11 px-5 ${reduced ? "btn-primary" : ""}`}
             aria-pressed={reduced}
             onClick={toggleReduced}
-            onKeyDown={(e) => {
-              if (e.key === " " || e.key === "Enter") {
-                e.preventDefault();
-                toggleReduced();
-              }
-            }}
           >
             {reduced ? "On" : "Off"}
           </button>
@@ -93,25 +96,26 @@ export default function Settings() {
 
       <section className={block}>
         <h2 className="font-semibold text-ink dark:text-white">Data management</h2>
+        <p className="mt-2 text-sm text-ink-muted">JSON backup includes browser records and application history. Video files stored in IndexedDB are not included.</p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" className="btn min-h-10 px-4" onClick={exportData}>
+          <button type="button" className="btn min-h-11 px-4" onClick={exportData}>
             Export my data
           </button>
-          <label className="btn min-h-10 cursor-pointer px-4">
+          <label className="btn career-file-upload min-h-11 cursor-pointer px-4">
             Import my data
             <input
               type="file"
               accept="application/json"
-              className="hidden"
+              className="sr-only"
               onChange={async (e) => {
                 const f = e.target.files?.[0];
-                if (f) await importData(f, (msg) => alert(msg));
+                if (f) try { await importData(f, (msg) => alert(msg)); } catch (cause) { alert(cause instanceof Error ? cause.message : "Could not import this backup."); }
               }}
             />
           </label>
           <button
             type="button"
-            className="btn min-h-10 px-4"
+            className="btn min-h-11 px-4"
             onClick={async () => {
               if (confirm("Reset all ProfessionalDev data?")) {
                 await resetAll();

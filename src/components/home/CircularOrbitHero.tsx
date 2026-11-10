@@ -57,13 +57,10 @@ export default function FloatingHero() {
           <article
             key={s.id}
             className="floating-tile"
-            style={
-              {
-                // @ts-ignore custom props for CSS
-                "--i": s.idx,
-                "--hue": s.hue,
-              } as React.CSSProperties
-            }
+            style={{
+              "--i": s.idx,
+              "--hue": s.hue,
+            } as React.CSSProperties & { "--i": number; "--hue": string }}
           >
             <div className="surface-muted rounded-xl p-5 floating-card group">
               <div className="flex items-center justify-between gap-3 mb-4">

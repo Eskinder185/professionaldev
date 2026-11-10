@@ -6,6 +6,8 @@ import { ThemeProvider } from "./theme/ThemeProvider";
 import { runMigrations } from "./utils/migrations";
 
 import "./styles/tailwind.css";
+import "./styles/careeros.css";
+import "./styles/careeros-polish.css";
 
 runMigrations();
 

@@ -234,7 +234,7 @@ export default function Trackers() {
                     <th className="px-3 py-2.5 font-semibold text-ink dark:text-white">Hours</th>
                     <th className="px-3 py-2.5 font-semibold text-ink dark:text-white">Notes</th>
                     <th className="px-3 py-2.5 font-semibold text-ink dark:text-white">Last</th>
-                    <th className="px-3 py-2.5 font-semibold text-ink dark:text-white">
+                    <th className="relative px-3 py-2.5 font-semibold text-ink dark:text-white">
                       <span className="sr-only">Actions</span>
                     </th>
                   </tr>
@@ -477,7 +477,7 @@ export default function Trackers() {
                     <th className="px-3 py-2.5 font-semibold text-ink dark:text-white">Status</th>
                     <th className="px-3 py-2.5 font-semibold text-ink dark:text-white">Next</th>
                     <th className="px-3 py-2.5 font-semibold text-ink dark:text-white">Due</th>
-                    <th className="px-3 py-2.5">
+                    <th className="relative px-3 py-2.5">
                       <span className="sr-only">Actions</span>
                     </th>
                   </tr>

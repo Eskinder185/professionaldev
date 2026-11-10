@@ -7,15 +7,15 @@
     --ease-out-editorial: cubic-bezier(0.25, 0.1, 0.25, 1);
 
     /* Canvas & type — light */
-    --tw-canvas: 252 251 254;
-    --tw-canvas-subtle: 246 244 250;
-    --tw-ink: 24 20 35;
+    --tw-canvas: 248 250 252;
+    --tw-canvas-subtle: 240 244 249;
+    --tw-ink: 15 23 42;
     /* Muted/faint: darkened slightly vs canvas for WCAG-friendly secondary text */
-    --tw-ink-muted: 72 68 92;
-    --tw-ink-faint: 108 102 128;
+    --tw-ink-muted: 71 85 105;
+    --tw-ink-faint: 100 116 139;
     /* Restrained violet brand */
-    --tw-accent: 109 40 217;
-    --tw-accent-muted: 124 58 237;
+    --tw-accent: 37 99 235;
+    --tw-accent-muted: 29 78 216;
     --tw-graphite: 72 68 89;
 
     --shadow-soft: 0 1px 0 rgba(24, 20, 35, 0.04), 0 6px 20px rgba(24, 20, 35, 0.06);
@@ -53,14 +53,14 @@
 
   :root.dark,
   :root:not(.light) {
-    --tw-canvas: 11 9 16;
-    --tw-canvas-subtle: 24 20 34;
-    --tw-ink: 250 249 252;
-    --tw-ink-muted: 198 192 218;
-    --tw-ink-faint: 154 148 178;
-    --tw-accent: 167 139 250;
-    --tw-accent-muted: 196 181 253;
-    --tw-graphite: 168 162 190;
+    --tw-canvas: 11 16 32;
+    --tw-canvas-subtle: 20 28 48;
+    --tw-ink: 248 250 252;
+    --tw-ink-muted: 179 194 216;
+    --tw-ink-faint: 147 163 184;
+    --tw-accent: 96 165 250;
+    --tw-accent-muted: 125 211 252;
+    --tw-graphite: 148 163 184;
 
     --shadow-soft: 0 1px 0 rgba(0, 0, 0, 0.5), 0 8px 28px rgba(0, 0, 0, 0.38);
     --shadow-soft-lg: 0 4px 16px rgba(0, 0, 0, 0.35), 0 24px 48px rgba(0, 0, 0, 0.42);
