@@ -1,38 +1,178 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Mic, Square, Trash2 } from "lucide-react";
-import { useLocal } from "../../hooks/useLocal";
+import { Download, FileText, Trash2 } from "lucide-react";
+import { setLocal } from "../../hooks/useLocal";
+import { deleteSessionRecordings, purgeExpired } from "./mediaStore";
+import { CONFIG_KEY, MODE_LABELS, TYPE_LABELS, loadConfig, loadSessions, newId, saveSessions, type Answer, type Session } from "./model";
+import { pickQuestions } from "./questions";
+import SessionReport from "./SessionReport";
+import SessionRoom from "./SessionRoom";
+import SetupPanel from "./SetupPanel";
+import { detectTranscription, type TranscriptionSupport } from "./speech";
+import "./interview-studio.css";
 
-const banks = {
-  Behavioral: ["Tell me about a project you are proud of.", "Describe a time you changed your approach after feedback.", "Tell me about a challenge and how you handled it."],
-  Technical: ["Explain a technical decision you made in a project.", "How would you diagnose a problem you cannot reproduce?", "Walk through how you tested a recent change."],
-  "HR screening": ["Tell me about yourself.", "Why are you interested in this role?", "What kind of team helps you do your best work?"],
-  "Role specific": ["What skills from your experience match this role?", "Which requirement would you need to learn next?", "Describe a relevant project from start to finish."],
-  "Elevator pitch": ["Introduce yourself and your target role in one minute.", "What evidence best supports your career goal?", "What opportunity are you looking for next?"],
-};
-type Mode = keyof typeof banks;
-type Session = { id: string; date: string; mode: Mode; question: string; notes: string; durationSeconds: number };
+type View = { kind: "setup" } | { kind: "session"; id: string } | { kind: "report"; id: string };
+
 export default function InterviewStudioPage() {
-  const [mode, setMode] = useState<Mode>("Behavioral");
-  const [index, setIndex] = useState(0);
-  const [notes, setNotes] = useState("");
-  const [seconds, setSeconds] = useState(0);
-  const [running, setRunning] = useState(false);
-  const [recording, setRecording] = useState(false);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [error, setError] = useState("");
-  const [sessions, setSessions] = useLocal<Session[]>("pd:careeros:interview-sessions", []);
-  const recorder = useRef<MediaRecorder | null>(null);
-  const stream = useRef<MediaStream | null>(null);
-  const chunks = useRef<BlobPart[]>([]);
-  const audio = useRef<string | null>(null);
-  const mounted = useRef(true);
-  const question = banks[mode][index];
-  useEffect(() => { if (!running) return; const timer = window.setInterval(() => setSeconds((value) => value + 1), 1000); return () => window.clearInterval(timer); }, [running]);
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; if (recorder.current?.state === "recording") recorder.current.stop(); stream.current?.getTracks().forEach((track) => track.stop()); if (audio.current) URL.revokeObjectURL(audio.current); }; }, []);
-  const clearAudio = () => { if (audio.current) URL.revokeObjectURL(audio.current); audio.current = null; setAudioUrl(null); };
-  const startRecording = async () => { try { setError(""); if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") { setError("Audio recording is unavailable in this browser or context."); return; } clearAudio(); const media = await navigator.mediaDevices.getUserMedia({ audio: true }); if (!mounted.current) { media.getTracks().forEach((track) => track.stop()); return; } stream.current = media; chunks.current = []; const instance = new MediaRecorder(media); recorder.current = instance; instance.ondataavailable = (event) => { if (event.data.size) chunks.current.push(event.data); }; instance.onerror = () => { if (mounted.current) { setError("Recording was interrupted. Please try again."); setRunning(false); } }; instance.onstop = () => { if (mounted.current && chunks.current.length) { const url = URL.createObjectURL(new Blob(chunks.current, { type: instance.mimeType })); audio.current = url; setAudioUrl(url); } media.getTracks().forEach((track) => track.stop()); if (mounted.current) { setRecording(false); setRunning(false); } }; media.getTracks().forEach((track) => { track.onended = () => { if (instance.state === "recording") { if (mounted.current) setError("Microphone access ended. Recording stopped."); instance.stop(); } }; }); instance.start(); setRecording(true); setRunning(true); } catch (cause) { stream.current?.getTracks().forEach((track) => track.stop()); if (mounted.current) { setRecording(false); setError(cause instanceof Error && cause.name === "NotAllowedError" ? "Microphone permission was denied. You can still practice with notes." : "Microphone unavailable. You can still practice with notes."); } } };
-  const stopRecording = () => { if (recorder.current?.state === "recording") recorder.current.stop(); setRunning(false); };
-  const saveSession = () => { if (recording) return; setSessions([{ id: crypto.randomUUID(), date: new Date().toISOString(), mode, question, notes, durationSeconds: seconds }, ...sessions]); setNotes(""); setSeconds(0); setRunning(false); clearAudio(); };
-  return <div className="career-feature"><div className="career-feature-header"><div><span className="career-overline">PRACTICE WITH PURPOSE</span><h1>Interview Studio</h1><p>Practice real answers, keep notes, and review sessions you choose to save.</p></div><Link className="career-secondary-button" to="/career-tools/interview-sim">Open original simulator</Link></div><div className="career-interview-modes" role="group" aria-label="Interview mode">{(Object.keys(banks) as Mode[]).map((item) => <button type="button" className={mode === item ? "selected" : ""} key={item} disabled={recording} onClick={() => { setMode(item); setIndex(0); setSeconds(0); setRunning(false); }}>{item}</button>)}</div><div className="career-interview-grid"><section className="career-panel career-interview-session"><div className="career-panel-heading"><span className="career-overline">QUESTION {index + 1} OF {banks[mode].length}</span><strong>{Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2,"0")}</strong></div><h2>{question}</h2><label>Your notes<textarea rows={8} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Write key points or a draft answer…" /></label><div className="career-interview-controls">{recording && <span role="status" className="career-recording-status">Recording in progress</span>}<button className="career-secondary-button" type="button" disabled={recording || index === 0} onClick={() => setIndex(index - 1)}>Previous</button><button className="career-secondary-button" type="button" disabled={recording || index === banks[mode].length - 1} onClick={() => setIndex(index + 1)}>Next question</button><button className="career-secondary-button" type="button" onClick={() => setRunning(!running)}>{running ? "Pause timer" : "Start timer"}</button>{recording ? <button className="career-quick-create" type="button" onClick={stopRecording}><Square size={15} /> Stop recording</button> : <button className="career-quick-create" type="button" onClick={startRecording}><Mic size={15} /> Record answer</button>}</div>{error && <p className="career-form-error" role="alert">{error}</p>}{audioUrl && <div className="career-audio"><audio controls src={audioUrl} aria-label="Recorded answer" /><button className="career-danger-button" type="button" onClick={clearAudio}><Trash2 size={15} /> Delete recording</button></div>}<p className="career-muted">Microphone access is requested only when you press Record. Audio stays in memory and is not saved with session notes.</p><button className="career-secondary-button" type="button" disabled={recording} onClick={saveSession}>Save session notes</button></section><aside className="career-panel career-interview-history"><h2>Practice history</h2>{sessions.length ? sessions.map((session) => <div key={session.id}><strong>{session.mode}</strong><span>{new Date(session.date).toLocaleDateString()} · {session.durationSeconds}s</span><p>{session.question}</p>{session.notes && <p>{session.notes}</p>}<button type="button" className="career-danger-button" onClick={() => setSessions(sessions.filter((item) => item.id !== session.id))}>Delete</button></div>) : <p className="career-muted">No saved sessions yet. Save notes only when you choose to.</p>}</aside></div><div className="career-source-notice">This studio does not provide AI evaluation or hiring predictions. Review your own answer for relevance, structure, and evidence.</div></div>;
+  const [config, setConfig] = useState(loadConfig);
+  const [sessions, setSessions] = useState<Session[]>(loadSessions);
+  const [view, setView] = useState<View>({ kind: "setup" });
+  const [transcription, setTranscription] = useState<TranscriptionSupport | null>(null);
+  const [status, setStatus] = useState("");
+
+  useEffect(() => setLocal(CONFIG_KEY, config), [config]);
+  useEffect(() => saveSessions(sessions), [sessions]);
+  useEffect(() => {
+    void detectTranscription().then(setTranscription);
+    void purgeExpired()
+      .then((removed) => removed && setStatus(`${removed} expired recording${removed === 1 ? " was" : "s were"} deleted.`))
+      .catch(() => undefined);
+  }, []);
+
+  const active = view.kind !== "setup" ? sessions.find((session) => session.id === view.id) : undefined;
+  const questions = useMemo(
+    () => (active ? pickQuestions(active.config.type, active.config.difficulty, active.config.level, active.config.questionCount, active.id, active.config.jobDescription, active.config.jobTitle) : []),
+    [active?.id], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
+  const updateSession = (id: string, change: (session: Session) => Session) => setSessions((current) => current.map((session) => (session.id === id ? change(session) : session)));
+
+  const start = () => {
+    const session: Session = { id: newId(), createdAt: new Date().toISOString(), config, answers: [] };
+    setSessions((current) => [session, ...current]);
+    setView({ kind: "session", id: session.id });
+    setStatus("");
+  };
+
+  const saveAnswer = (answer: Answer) => {
+    if (!active) return;
+    updateSession(active.id, (session) => {
+      const existing = session.answers.find((item) => item.questionId === answer.questionId);
+      if (!existing) return { ...session, answers: [...session.answers, answer] };
+      const merged: Answer = {
+        ...existing,
+        ...answer,
+        id: existing.id,
+        audio: answer.audio ?? existing.audio,
+        presentation: answer.presentation ?? existing.presentation,
+        mediaId: answer.mediaId ?? existing.mediaId,
+        mediaKind: answer.mediaKind ?? existing.mediaKind,
+        durationSec: answer.audio ? answer.durationSec : existing.durationSec || answer.durationSec,
+      };
+      return { ...session, answers: session.answers.map((item) => (item.id === existing.id ? merged : item)) };
+    });
+  };
+
+  const removeSession = async (id: string) => {
+    await deleteSessionRecordings(id).catch(() => undefined);
+    setSessions((current) => current.filter((session) => session.id !== id));
+    setView({ kind: "setup" });
+    setStatus("Session deleted.");
+  };
+
+  if (view.kind === "session" && active)
+    return (
+      <div className="career-feature iv-page">
+        <SessionRoom
+          session={active}
+          questions={questions}
+          transcription={transcription}
+          onSaveAnswer={saveAnswer}
+          onEnd={() => {
+            updateSession(active.id, (session) => ({ ...session, endedAt: new Date().toISOString() }));
+            setView({ kind: "report", id: active.id });
+          }}
+        />
+      </div>
+    );
+
+  if (view.kind === "report" && active)
+    return (
+      <div className="career-feature iv-page">
+        <SessionReport session={active} onChange={(session) => updateSession(session.id, () => session)} onDelete={() => void removeSession(active.id)} onBack={() => setView({ kind: "setup" })} />
+      </div>
+    );
+
+  return (
+    <div className="career-feature iv-page">
+      <div className="career-feature-header">
+        <div>
+          <span className="career-overline">PRACTICE WITH PURPOSE</span>
+          <h1>Interview Studio</h1>
+          <p>Practice aloud or in writing, optionally on camera, and review feedback tied to what you actually said.</p>
+        </div>
+        <Link className="career-secondary-button" to="/career-tools/interview-sim">
+          Open original simulator
+        </Link>
+      </div>
+      <p className="rs-status" role="status" aria-live="polite">{status}</p>
+      <div className="iv-layout">
+        <SetupPanel config={config} onChange={setConfig} onStart={start} transcription={transcription} />
+        <aside className="career-panel iv-history" aria-labelledby="iv-history-title">
+          <h2 id="iv-history-title">Practice history</h2>
+          {sessions.length ? (
+            <ul>
+              {sessions.map((session) => (
+                <li key={session.id}>
+                  <div>
+                    <strong>{TYPE_LABELS[session.config.type]}</strong>
+                    <span>
+                      {new Date(session.createdAt).toLocaleDateString()} · {MODE_LABELS[session.config.mode]} · {session.answers.length} answer{session.answers.length === 1 ? "" : "s"}
+                    </span>
+                    {session.answers[0]?.text ? <p>{session.answers[0].text.slice(0, 120)}</p> : null}
+                  </div>
+                  <div className="iv-row">
+                    <button type="button" className="career-secondary-button" onClick={() => setView({ kind: "report", id: session.id })}>
+                      <FileText size={14} /> Open report
+                    </button>
+                    <button
+                      type="button"
+                      className="career-danger-button"
+                      aria-label={`Delete ${TYPE_LABELS[session.config.type]} session from ${new Date(session.createdAt).toLocaleDateString()}`}
+                      onClick={() => {
+                        if (window.confirm("Delete this session, its transcripts, and any saved recordings?")) void removeSession(session.id);
+                      }}
+                    >
+                      <Trash2 size={14} /> Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="career-muted">No sessions yet. Sessions are saved in this browser when you start one.</p>
+          )}
+          <div className="iv-data">
+            <h3>Your data</h3>
+            <p className="career-muted">Sessions and transcripts are stored in this browser. Recordings exist only if you turned on saving, and expire automatically.</p>
+            <div className="iv-row">
+              <button type="button" className="career-secondary-button" disabled={!sessions.length} onClick={() => {
+                const url = URL.createObjectURL(new Blob([JSON.stringify(sessions, null, 2)], { type: "application/json" }));
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = "interview-studio-data.json";
+                link.click();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+              }}>
+                <Download size={14} /> Export all
+              </button>
+              <button
+                type="button"
+                className="career-danger-button"
+                disabled={!sessions.length}
+                onClick={async () => {
+                  if (!window.confirm("Delete all interview sessions, transcripts, and saved recordings? This cannot be undone.")) return;
+                  await Promise.all(sessions.map((session) => deleteSessionRecordings(session.id).catch(() => undefined)));
+                  setSessions([]);
+                  setStatus("All interview data deleted.");
+                }}
+              >
+                <Trash2 size={14} /> Delete all
+              </button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
 }

@@ -115,9 +115,10 @@ test("résumé import and local review handle text and reject unsupported files"
     mimeType: "text/plain",
     buffer: Buffer.from("Summary\nBuilt and tested a TypeScript project."),
   });
-  await expect(page.getByRole("textbox", { name: "Résumé text" })).toHaveValue(/TypeScript project/);
-  if (isMobile) await page.getByRole("button", { name: "Review", exact: true }).click();
-  await expect(page.getByText(/words ·/)).toBeVisible();
+  if (isMobile) await page.getByRole("tab", { name: "Preview" }).click();
+  await expect(page.getByRole("article", { name: "Page 1 of 1" }).getByText("Built and tested a TypeScript project.")).toBeVisible();
+  if (isMobile) await page.getByRole("tab", { name: /^Review/ }).click();
+  await expect(page.getByRole("heading", { name: "Document checks" })).toBeVisible();
   await page.locator('input[type="file"]').setInputFiles({
     name: "unsupported.bin",
     mimeType: "application/octet-stream",
@@ -170,33 +171,9 @@ test("focus tasks and résumé versions survive reload", async ({ page }) => {
   await expect(page.getByRole("textbox", { name: "Task title" })).toHaveValue("Review portfolio case study");
   await page.goto("./resume");
   await page.getByRole("button", { name: "New version" }).click();
-  await page.getByRole("textbox", { name: "Résumé text" }).fill("Summary\nBuilt a documented class project.");
+  await page.getByRole("textbox", { name: "Full name" }).fill("Taylor Student");
   await page.reload();
-  await expect(page.getByRole("textbox", { name: "Résumé text" })).toHaveValue("Summary\nBuilt a documented class project.");
-});
-
-test("interview notes are saved only after the save action", async ({ page }) => {
-  await page.goto("./interviews");
-  await page.getByRole("textbox", { name: "Your notes" }).fill("Use my class project as evidence.");
-  await page.reload();
-  await expect(page.getByRole("textbox", { name: "Your notes" })).toBeEmpty();
-  await page.getByRole("textbox", { name: "Your notes" }).fill("Use my class project as evidence.");
-  await page.getByRole("button", { name: "Save session notes" }).click();
-  await page.reload();
-  await expect(page.getByText("Use my class project as evidence.")).toBeVisible();
-});
-
-test("interview practice reports denied microphone access without saving audio", async ({ page }) => {
-  await page.addInitScript(() => {
-    Object.defineProperty(navigator, "mediaDevices", {
-      configurable: true,
-      value: { getUserMedia: async () => { throw new DOMException("Denied", "NotAllowedError"); } },
-    });
-  });
-  await page.goto("./interviews");
-  await page.getByRole("button", { name: "Record answer" }).click();
-  await expect(page.getByRole("alert")).toContainText("Microphone permission was denied");
-  await expect(page.getByRole("button", { name: "Save session notes" })).toBeEnabled();
+  await expect(page.getByRole("textbox", { name: "Full name" })).toHaveValue("Taylor Student");
 });
 
 test("workspace overlays close with Escape and sidebar preference persists", async ({ page, isMobile }) => {

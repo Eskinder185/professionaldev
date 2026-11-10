@@ -17,6 +17,7 @@
     "deploy": "gh-pages -d dist -b gh-pages"
   },
   "dependencies": {
+    "@mediapipe/tasks-vision": "^1.2.2",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
     "html2canvas": "^1.4.1",
