@@ -1,0 +1,23 @@
+name: roadmap-to-role
+
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-roadmap}
+      POSTGRES_USER: ${DB_USER:-roadmap_dev}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-roadmap_dev_password}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - roadmap-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  roadmap-postgres-data:

@@ -67,6 +67,30 @@ describe("matchResume", () => {
     expect(diffMatches(before, after)).toContain("“HIPAA” is no longer included.");
   });
 
+  it("does not automatically score unconfirmed ambiguous acronyms until the user confirms them", () => {
+    const confirmedReqs = job().requirements.filter((r) => !r.uncertain);
+    const withUncertain = [
+      ...confirmedReqs,
+      {
+        id: "unc-1",
+        term: "XSOAR",
+        phrases: ["XSOAR"],
+        snippets: ["Use XSOAR playbooks."],
+        category: "Other technical terms",
+        kind: "required" as const,
+        selected: true,
+        possession: "unanswered" as const,
+        origin: "detected" as const,
+        uncertain: true,
+      },
+    ];
+    const baseScore = matchResume(resume, confirmedReqs, settings);
+    const uncertainScore = matchResume(resume, withUncertain, settings);
+    expect(uncertainScore.score).toBe(baseScore.score);
+    expect(uncertainScore.requiredCoverage).toEqual(baseScore.requiredCoverage);
+    expect(uncertainScore.matches.find((m) => m.requirement.term === "XSOAR")?.group).toBe("review");
+  });
+
   it("parses common résumé date formats", () => {
     expect(parseDate("Jan 2022")).toBeCloseTo(2022, 1);
     expect(parseDate("03/2019")).toBeCloseTo(2019 + 2 / 12, 2);

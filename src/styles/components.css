@@ -1,0 +1,149 @@
+/*
+ * CareerOS shared components. Built only on the semantic tokens in tokens.css.
+ * Every interactive control has hover, focus-visible, pressed, and disabled states.
+ */
+
+/* ── Buttons ── */
+.cos-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--cos-space-2);
+  min-height: 40px; padding: 0 var(--cos-space-4);
+  border: 1px solid var(--cos-border-strong); border-radius: var(--cos-radius-md);
+  background: var(--cos-surface-raised); color: var(--cos-text);
+  font: inherit; font-size: var(--cos-text-body); font-weight: 600; line-height: 1.2; text-decoration: none; white-space: nowrap;
+  cursor: pointer; user-select: none;
+  transition: background-color var(--cos-dur-fast) var(--cos-ease), border-color var(--cos-dur-fast) var(--cos-ease), transform var(--cos-dur-fast) var(--cos-ease), box-shadow var(--cos-dur-fast) var(--cos-ease);
+}
+.cos-btn:hover { background: var(--cos-surface-hover); }
+.cos-btn:active { transform: scale(0.98); }
+.cos-btn:focus-visible { outline: none; box-shadow: var(--cos-focus-ring); }
+.cos-btn:disabled, .cos-btn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; transform: none; }
+.cos-btn-primary { border-color: transparent; background: var(--cos-accent-solid); color: var(--cos-text-on-solid); }
+.cos-btn-primary:hover { background: var(--cos-accent-solid-hover); }
+.cos-btn-primary:active { background: var(--cos-accent-solid-pressed); }
+.cos-btn-danger { border-color: var(--cos-danger-border); color: var(--cos-danger-text); }
+.cos-btn-danger:hover { background: var(--cos-danger-soft); }
+.cos-btn-quiet { border-color: transparent; background: transparent; color: var(--cos-accent-text); }
+.cos-btn-quiet:hover { background: var(--cos-accent-soft); }
+.cos-btn-lg { min-height: 46px; padding: 0 var(--cos-space-5); font-size: 15px; border-radius: 12px; }
+.cos-btn-sm { min-height: 32px; padding: 0 var(--cos-space-3); font-size: 13px; }
+.cos-btn[data-loading="true"] { cursor: progress; }
+.cos-spinner { width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: cos-spin 0.7s linear infinite; }
+@keyframes cos-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .cos-spinner { animation-duration: 2.4s; } .cos-btn:active { transform: none; } }
+
+/* ── Cards and panels ── */
+.cos-card { min-width: 0; padding: var(--cos-space-5); border: 1px solid var(--cos-border); border-radius: var(--cos-radius-lg); background: var(--cos-surface); color: var(--cos-text); }
+.cos-card-raised { background: var(--cos-surface-raised); box-shadow: var(--cos-shadow-sm); }
+.cos-card h2, .cos-card h3 { margin: 0; color: var(--cos-text); }
+.cos-muted { color: var(--cos-text-muted); font-size: 13px; line-height: 1.5; }
+.cos-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cos-accent-text); }
+
+/* ── Status chip: always an icon or dot plus text, never colour alone ── */
+.cos-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1px solid var(--cos-border-strong); border-radius: var(--cos-radius-pill); background: var(--cos-surface-hover); color: var(--cos-text-muted); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.cos-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+.cos-chip-plain::before { display: none; }
+.cos-chip-success { background: var(--cos-success-soft); border-color: var(--cos-success-border); color: var(--cos-success-text); }
+.cos-chip-warning { background: var(--cos-warning-soft); border-color: var(--cos-warning-border); color: var(--cos-warning-text); }
+.cos-chip-danger { background: var(--cos-danger-soft); border-color: var(--cos-danger-border); color: var(--cos-danger-text); }
+.cos-chip-info { background: var(--cos-accent-soft); border-color: var(--cos-accent-border); color: var(--cos-accent-text); }
+.cos-chip-busy::before { animation: cos-pulse 1.1s ease-in-out infinite; }
+@keyframes cos-pulse { 50% { opacity: 0.25; } }
+
+/* ── Segmented control ── */
+.cos-segmented { display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2px; padding: 3px; border-radius: var(--cos-radius-md); background: var(--cos-surface-sunken); border: 1px solid var(--cos-border); }
+.cos-segmented button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 0 var(--cos-space-4); border: 0; border-radius: 7px; background: transparent; color: var(--cos-text-muted); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: background-color var(--cos-dur-base) var(--cos-ease), color var(--cos-dur-base) var(--cos-ease); }
+.cos-segmented button:hover { color: var(--cos-text); }
+.cos-segmented button[aria-checked="true"], .cos-segmented button[aria-selected="true"] { background: var(--cos-surface-raised); color: var(--cos-text); box-shadow: var(--cos-shadow-sm); }
+.cos-segmented button:focus-visible { outline: none; box-shadow: var(--cos-focus-ring); }
+
+/* ── Fields ── */
+.cos-field { display: grid; gap: 6px; min-width: 0; }
+.cos-field > label, .cos-label { font-size: 13px; font-weight: 600; color: var(--cos-text); }
+.cos-field small { font-size: 12px; color: var(--cos-text-muted); line-height: 1.4; }
+.cos-input, .cos-field input:not([type="checkbox"]):not([type="radio"]), .cos-field select, .cos-field textarea {
+  width: 100%; min-width: 0; box-sizing: border-box; min-height: 40px; padding: 8px 12px;
+  border: 1px solid var(--cos-border-strong); border-radius: var(--cos-radius-md);
+  background: var(--cos-surface-raised); color: var(--cos-text); font: inherit; font-size: var(--cos-text-body);
+  transition: border-color var(--cos-dur-fast) var(--cos-ease), box-shadow var(--cos-dur-fast) var(--cos-ease);
+}
+.cos-input::placeholder, .cos-field input::placeholder, .cos-field textarea::placeholder { color: var(--cos-text-faint); }
+.cos-input:focus-visible, .cos-field input:focus-visible, .cos-field select:focus-visible, .cos-field textarea:focus-visible { outline: none; border-color: var(--cos-accent); box-shadow: var(--cos-focus-ring); }
+.cos-field [aria-invalid="true"] { border-color: var(--cos-danger-solid); }
+.cos-field-error { font-size: 12px; color: var(--cos-danger-text); }
+
+/* ── Notices ── */
+.cos-notice { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--cos-border); border-radius: var(--cos-radius-md); background: var(--cos-surface-sunken); color: var(--cos-text); font-size: 13px; line-height: 1.5; }
+.cos-notice svg { flex: none; margin-top: 2px; }
+.cos-notice-info { background: var(--cos-accent-soft); border-color: var(--cos-accent-border); }
+.cos-notice-success { background: var(--cos-success-soft); border-color: var(--cos-success-border); color: var(--cos-success-text); }
+.cos-notice-warning { background: var(--cos-warning-soft); border-color: var(--cos-warning-border); color: var(--cos-warning-text); }
+.cos-notice-danger { background: var(--cos-danger-soft); border-color: var(--cos-danger-border); color: var(--cos-danger-text); }
+
+/* ── Stepper ── */
+.cos-stepper { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.cos-stepper li { flex: 1; display: grid; gap: 6px; min-width: 0; font-size: 12px; color: var(--cos-text-faint); }
+.cos-stepper li::before { content: ""; height: 4px; border-radius: 2px; background: var(--cos-border-strong); transition: background-color var(--cos-dur-slow) var(--cos-ease); }
+.cos-stepper li[data-state="done"]::before { background: var(--cos-success-solid); }
+.cos-stepper li[data-state="current"]::before { background: var(--cos-accent); }
+.cos-stepper li[data-state="current"] { color: var(--cos-text); font-weight: 650; }
+.cos-stepper li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Progress ── */
+.cos-progress { height: 6px; border-radius: 3px; background: var(--cos-surface-sunken); overflow: hidden; }
+.cos-progress > span { display: block; height: 100%; border-radius: inherit; background: var(--cos-accent); transition: width var(--cos-dur-slow) var(--cos-ease); }
+.cos-progress[data-indeterminate="true"] > span { width: 35%; animation: cos-slide 1.2s var(--cos-ease) infinite; }
+@keyframes cos-slide { from { transform: translateX(-110%); } to { transform: translateX(300%); } }
+@media (prefers-reduced-motion: reduce) { .cos-progress[data-indeterminate="true"] > span { animation: none; width: 100%; opacity: 0.5; } .cos-chip-busy::before { animation: none; } }
+
+/* ── Dialog ── */
+.cos-overlay { position: fixed; inset: 0; z-index: var(--cos-z-overlay); display: grid; place-items: center; padding: var(--cos-space-4); background: var(--cos-overlay); animation: cos-fade var(--cos-dur-base) var(--cos-ease); }
+.cos-dialog { width: min(680px, 100%); max-height: min(88dvh, 860px); overflow: auto; border: 1px solid var(--cos-border); border-radius: var(--cos-radius-xl); background: var(--cos-surface); color: var(--cos-text); box-shadow: var(--cos-shadow-lg); animation: cos-rise var(--cos-dur-slow) var(--cos-ease); }
+.cos-dialog-head { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; align-items: center; gap: var(--cos-space-3); padding: var(--cos-space-4) var(--cos-space-5); border-bottom: 1px solid var(--cos-border); background: var(--cos-surface); }
+.cos-dialog-head h2 { margin: 0; font-size: 18px; }
+.cos-dialog-body { display: grid; gap: var(--cos-space-4); padding: var(--cos-space-5); }
+.cos-dialog-foot { position: sticky; bottom: 0; display: flex; justify-content: space-between; gap: var(--cos-space-3); padding: var(--cos-space-4) var(--cos-space-5); border-top: 1px solid var(--cos-border); background: var(--cos-surface); }
+.cos-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid transparent; border-radius: var(--cos-radius-md); background: transparent; color: var(--cos-text-muted); cursor: pointer; transition: background-color var(--cos-dur-fast) var(--cos-ease); }
+.cos-icon-btn:hover { background: var(--cos-surface-hover); color: var(--cos-text); }
+.cos-icon-btn:focus-visible { outline: none; box-shadow: var(--cos-focus-ring); }
+@keyframes cos-fade { from { opacity: 0; } }
+@keyframes cos-rise { from { opacity: 0; transform: translateY(10px) scale(0.985); } }
+@media (prefers-reduced-motion: reduce) { .cos-overlay, .cos-dialog { animation: none; } }
+@media (max-width: 600px) {
+  .cos-overlay { place-items: end center; padding: 0; }
+  .cos-dialog { width: 100%; max-height: 92dvh; border-radius: var(--cos-radius-xl) var(--cos-radius-xl) 0 0; }
+}
+
+/* ── Choice cards (radio groups that look like cards) ── */
+.cos-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--cos-space-3); }
+.cos-choice { display: grid; gap: 4px; justify-items: start; text-align: left; padding: var(--cos-space-4); border: 1px solid var(--cos-border-strong); border-radius: var(--cos-radius-lg); background: var(--cos-surface-raised); color: var(--cos-text); font: inherit; cursor: pointer; transition: border-color var(--cos-dur-fast) var(--cos-ease), background-color var(--cos-dur-fast) var(--cos-ease), box-shadow var(--cos-dur-fast) var(--cos-ease); }
+.cos-choice strong { font-size: 15px; }
+.cos-choice span { font-size: 12.5px; line-height: 1.45; color: var(--cos-text-muted); }
+.cos-choice:hover { border-color: var(--cos-accent); }
+.cos-choice[aria-checked="true"] { border-color: var(--cos-accent); background: var(--cos-accent-soft); box-shadow: inset 0 0 0 1px var(--cos-accent); }
+.cos-choice:focus-visible { outline: none; box-shadow: var(--cos-focus-ring); }
+
+/* ── Copyable command ── */
+.cos-code { display: flex; align-items: center; justify-content: space-between; gap: var(--cos-space-3); padding: 10px 12px; border: 1px solid var(--cos-border); border-radius: var(--cos-radius-md); background: var(--cos-surface-sunken); }
+.cos-code code { min-width: 0; overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; color: var(--cos-text); }
+
+.cos-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ── Placeholders: readable in both themes (the browser/Tailwind default grey fails AA on white) ── */
+:root input::placeholder, :root textarea::placeholder { color: var(--cos-text-faint); opacity: 1; }
+
+/* ── Checkbox row and inline spinner icon ── */
+.cos-check { display: flex; align-items: center; gap: var(--cos-space-2); min-height: 32px; font-size: 13px; color: var(--cos-text); cursor: pointer; }
+.cos-check input { width: 16px; height: 16px; margin: 0; flex: none; accent-color: var(--cos-accent-solid); }
+.cos-spinner-icon { animation: cos-spin 0.8s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .cos-spinner-icon { animation-duration: 2.8s; } }
+
+/* ── Text-style button for inline actions ── */
+.cos-link { display: inline; padding: 0; border: 0; background: none; color: var(--cos-accent-text); font: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.cos-link:hover { color: var(--cos-accent); }
+.cos-link:focus-visible { outline: none; box-shadow: var(--cos-focus-ring); border-radius: var(--cos-radius-sm); }
+
+/* On narrow screens only the current step is named; "Step N of M" is shown separately. */
+@media (max-width: 600px) {
+  .cos-stepper li:not([data-state="current"]) span { display: none; }
+  .cos-stepper li[data-state="current"] { flex: 2.4; }
+}

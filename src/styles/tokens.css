@@ -1,0 +1,157 @@
+/*
+ * CareerOS design tokens.
+ *
+ * Semantic variables shared by every CareerOS surface (website and extension).
+ * Feature styles should use these instead of hardcoded colours so that Light,
+ * Dark, and System appearance work everywhere.
+ *
+ * Theme selection: <html class="light"> or <html class="dark"> (set before
+ * first paint by the inline script in index.html and kept in sync by
+ * ThemeProvider). With no class, dark is assumed, matching the legacy tokens.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --cos-bg: #f8fafc;
+  --cos-surface: #ffffff;
+  --cos-surface-raised: #ffffff;
+  --cos-surface-sunken: #f1f5f9;
+  --cos-surface-hover: #eef2f7;
+  --cos-overlay: rgba(15, 23, 42, 0.45);
+
+  /* Text */
+  --cos-text: #0f172a;
+  --cos-text-muted: #475569;
+  --cos-text-faint: #64748b;
+  --cos-text-on-solid: #ffffff;
+
+  /* Borders */
+  --cos-border: #e2e8f0;
+  --cos-border-strong: #cbd5e1;
+
+  /* Accent */
+  --cos-accent: #2563eb;
+  --cos-accent-solid: #2563eb;
+  --cos-accent-solid-hover: #1d4ed8;
+  --cos-accent-solid-pressed: #1e40af;
+  --cos-accent-soft: #eff6ff;
+  --cos-accent-border: #93c5fd;
+  --cos-accent-text: #1d4ed8;
+
+  /* Status: each has a soft background, a border, readable text, and a solid fill */
+  --cos-success-soft: #dcfce7;
+  --cos-success-border: #86efac;
+  --cos-success-text: #166534;
+  --cos-success-solid: #15803d;
+  --cos-warning-soft: #fef3c7;
+  --cos-warning-border: #fcd34d;
+  --cos-warning-text: #92400e;
+  --cos-warning-solid: #b45309;
+  --cos-danger-soft: #fee2e2;
+  --cos-danger-border: #fca5a5;
+  --cos-danger-text: #991b1b;
+  --cos-danger-solid: #b91c1c;
+
+  /* Elevation */
+  --cos-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --cos-shadow-md: 0 1px 2px rgba(15, 23, 42, 0.05), 0 6px 18px rgba(15, 23, 42, 0.08);
+  --cos-shadow-lg: 0 4px 12px rgba(15, 23, 42, 0.08), 0 24px 48px rgba(15, 23, 42, 0.14);
+
+  /* Shape */
+  --cos-radius-sm: 6px;
+  --cos-radius-md: 10px;
+  --cos-radius-lg: 14px;
+  --cos-radius-xl: 20px;
+  --cos-radius-pill: 999px;
+
+  /* Spacing scale: 4, 8, 12, 16, 24, 32, 48, 64 */
+  --cos-space-1: 4px;
+  --cos-space-2: 8px;
+  --cos-space-3: 12px;
+  --cos-space-4: 16px;
+  --cos-space-5: 24px;
+  --cos-space-6: 32px;
+  --cos-space-7: 48px;
+  --cos-space-8: 64px;
+
+  /* Type scale */
+  --cos-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --cos-text-meta: 12px;
+  --cos-text-body: 14px;
+  --cos-text-card: 16px;
+  --cos-text-section: 20px;
+  --cos-text-title: 30px;
+
+  /* Motion */
+  --cos-dur-fast: 120ms;
+  --cos-dur-base: 180ms;
+  --cos-dur-slow: 260ms;
+  --cos-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* Focus ring: a gap in the surface colour, then the accent */
+  --cos-focus-ring: 0 0 0 2px var(--cos-surface), 0 0 0 4px var(--cos-accent);
+
+  /* Layers */
+  --cos-z-sticky: 20;
+  --cos-z-dropdown: 40;
+  --cos-z-overlay: 60;
+  --cos-z-dialog: 70;
+  --cos-z-toast: 90;
+}
+
+:root.dark,
+:root:not(.light) {
+  color-scheme: dark;
+
+  /* Layered dark surfaces: canvas < surface < raised */
+  --cos-bg: #0b1020;
+  --cos-surface: #141c30;
+  --cos-surface-raised: #1b2740;
+  --cos-surface-sunken: #0f1628;
+  --cos-surface-hover: #22304d;
+  --cos-overlay: rgba(2, 6, 23, 0.68);
+
+  --cos-text: #f8fafc;
+  --cos-text-muted: #b3c2d8;
+  --cos-text-faint: #93a3b8;
+  --cos-text-on-solid: #ffffff;
+
+  --cos-border: #2c3a56;
+  --cos-border-strong: #3d4d6e;
+
+  --cos-accent: #60a5fa;
+  --cos-accent-solid: #2563eb;
+  --cos-accent-solid-hover: #3b82f6;
+  --cos-accent-solid-pressed: #1d4ed8;
+  --cos-accent-soft: #192e50;
+  --cos-accent-border: #2f4f85;
+  --cos-accent-text: #93c5fd;
+
+  --cos-success-soft: #11301f;
+  --cos-success-border: #1f6b3d;
+  --cos-success-text: #86efac;
+  --cos-success-solid: #15803d;
+  --cos-warning-soft: #33250b;
+  --cos-warning-border: #7c5a12;
+  --cos-warning-text: #fcd34d;
+  --cos-warning-solid: #b45309;
+  --cos-danger-soft: #3a1518;
+  --cos-danger-border: #7f2a2f;
+  --cos-danger-text: #fca5a5;
+  --cos-danger-solid: #b91c1c;
+
+  /* Shadows are darker and tighter on dark surfaces; borders carry most separation */
+  --cos-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --cos-shadow-md: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 22px rgba(0, 0, 0, 0.35);
+  --cos-shadow-lg: 0 4px 14px rgba(0, 0, 0, 0.4), 0 24px 48px rgba(0, 0, 0, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --cos-dur-fast: 0ms;
+    --cos-dur-base: 0ms;
+    --cos-dur-slow: 0ms;
+  }
+}

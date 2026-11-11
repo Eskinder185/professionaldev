@@ -4,7 +4,9 @@ import Home from "./pages/Home";
 import NavBar from "./components/NavBar";
 import SiteBackground from "./components/shell/SiteBackground";
 import SiteFooter from "./components/shell/SiteFooter";
+import AuthCallback from "./auth/AuthCallback";
 import WorkspaceShell from "./components/layout/WorkspaceShell";
+import { AIConnectionProvider } from "./features/ai/AIConnectionProvider";
 
 const About = lazy(() => import("./pages/About"));
 const AppTracker = lazy(() => import("./pages/AppTracker"));
@@ -15,8 +17,13 @@ const StarBuilder = lazy(() => import("./pages/StarBuilder"));
 const TechCareerHub = lazy(() => import("./pages/TechCareerHub"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const JobsPage = lazy(() => import("./features/jobs/JobsPage"));
+const MatchesPage = lazy(() => import("./features/jobs/MatchesPage"));
+const DocumentsPage = lazy(() => import("./features/documents/DocumentsPage"));
+const CoverLetterEditor = lazy(() => import("./features/documents/CoverLetterEditor"));
 const AcademyPage = lazy(() => import("./features/learning/AcademyPage"));
 const ApplicationsPage = lazy(() => import("./features/applications/ApplicationsPage"));
+const AutoApplyPage = lazy(() => import("./features/autoapply/AutoApplyPage"));
+const SyntheticApplicationPage = lazy(() => import("./features/autoapply/SyntheticApplicationPage"));
 const ResumeStudioPage = lazy(() => import("./features/resume/ResumeStudioPage"));
 const AnalyticsPage = lazy(() => import("./features/career/AnalyticsPage"));
 const CoachPage = lazy(() => import("./features/ai/CoachPage"));
@@ -52,6 +59,7 @@ const ValuesWorksheet = lazy(() => import("./pages/SelfAssessment/ValuesWorkshee
 
 export default function App() {
   return (
+    <AIConnectionProvider>
     <Routes>
       <Route path="/" element={<div className="relative flex min-h-screen flex-col"><SiteBackground /><NavBar /><main className="mx-auto w-full max-w-content flex-grow px-4 py-8 sm:px-6 sm:py-10 md:py-12"><Home /></main><SiteFooter /></div>} />
       <Route path="/*" element={<WorkspaceShell><main id="workspace-main" className="career-main">
@@ -63,10 +71,17 @@ export default function App() {
           )}
         >
           <Routes>
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/jobs" element={<JobsPage />} />
           <Route path="/academy" element={<AcademyPage />} />
           <Route path="/applications" element={<ApplicationsPage />} />
+          <Route path="/tracker" element={<ApplicationsPage />} />
+          <Route path="/matches" element={<MatchesPage />} />
+          <Route path="/documents" element={<DocumentsPage />} />
+          <Route path="/documents/letters/:id" element={<CoverLetterEditor />} />
+          <Route path="/autoapply" element={<AutoApplyPage />} />
+          <Route path="/autoapply/sandbox" element={<SyntheticApplicationPage />} />
           <Route path="/resume" element={<ResumeStudioPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/coach" element={<CoachPage />} />
@@ -119,5 +134,6 @@ export default function App() {
         </Suspense>
       </main></WorkspaceShell>} />
     </Routes>
+    </AIConnectionProvider>
   );
 }

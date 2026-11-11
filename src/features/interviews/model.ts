@@ -36,7 +36,7 @@ export type InterviewConfig = {
   jobDescription: string;
   questionCount: number;
   mode: PracticeMode;
-  transcription: "browser" | "off";
+  transcription: "whisper-browser" | "whisper-local" | "whisper-cloud" | "browser" | "off";
   micId: string;
   cameraId: string;
   consents: Consents;
@@ -63,7 +63,7 @@ export type Answer = {
   question: string;
   text: string;
   segments: TranscriptSegment[];
-  transcriptSource: "typed" | "live" | "manual" | "none";
+  transcriptSource: "typed" | "live" | "whisper" | "manual" | "none";
   notes: string;
   durationSec: number;
   startedAt: string;

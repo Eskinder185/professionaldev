@@ -117,7 +117,7 @@ test("templates, section order, and paper size change the document", async ({ pa
   await showPreview(page, isMobile);
   await expect(page.locator(".rd-doc.rd-tpl-technical")).toHaveCount(1);
   const headings = await preview(page).getByRole("heading", { level: 2 }).allTextContents();
-  expect(headings.slice(0, 3)).toEqual(["Professional Summary", "Projects", "Technical Skills"]);
+  expect(headings.slice(0, 3)).toEqual(["PROFESSIONAL SUMMARY", "CERTIFICATIONS", "TECHNICAL SKILLS"]);
   const size = await preview(page).evaluate((node) => node.getBoundingClientRect().height / node.getBoundingClientRect().width);
   expect(size).toBeCloseTo(11.69 / 8.27, 2);
 });

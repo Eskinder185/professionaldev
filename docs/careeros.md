@@ -1,10 +1,8 @@
 # ProfessionalDev CareerOS: local implementation
 
-> Commit scope: this frontend CareerOS package excludes the separate Spring Boot roadmap API and authentication work present in the larger audit worktree.
-
 ## Initial audit
 
-At the start of this work the repository already had substantial uncommitted changes. They were preserved. The application had a React 18, TypeScript, Vite, Tailwind and React Router foundation, light and dark mode, lazy legacy routes, browser storage migrations, a separate local Spring Boot roadmap API, and Playwright/Vitest checks. The API is outside this selective frontend commit. Existing working tools included self assessments, the résumé grader, interview simulator, STAR tools, elevator pitch, portfolio and profile guides, application tracker, certification resources, tech hub, and a rule based PD Coach.
+At the start of this work the repository already had substantial uncommitted changes. They were preserved. The application had a React 18, TypeScript, Vite, Tailwind and React Router foundation, light and dark mode, lazy legacy routes, browser storage migrations, a local Spring Boot roadmap API, and Playwright/Vitest checks. Existing working tools included self assessments, the résumé grader, interview simulator, STAR tools, elevator pitch, portfolio and profile guides, application tracker, certification resources, tech hub, and a rule based PD Coach.
 
 The product was organized as separate resource and tool pages. It had no unified workspace shell, connected dashboard, authorized job feed, authored lesson reader, résumé version editor, or secure cloud/AI service. Browser data lives under several historic keys. The existing application tracker uses `appTracker:items`; the skill tracker uses `pd:resources:skills:list`. The current build and test commands use Vite's default config bundler, which cannot read parent directories under this workstation's sandbox. `--configLoader runner` succeeds. This is an environment limitation, not an application compile error.
 
@@ -37,7 +35,7 @@ Typography uses the existing system font stack with Inter when installed. Headin
 
 ## Data and privacy
 
-There is no cloud synchronization for the new workspace. Browser storage is neither encrypted nor a secure private account. The separate local Spring Boot API integration is outside this selective frontend commit. New data is under `pd:careeros:*`; applications continue to use `appTracker:items`. No résumé, coach message, or job detail is sent to a model or a job provider. Saved job availability is unverified. The dashboard does not synthesize user achievements or job recommendations.
+There is no cloud synchronization for the new workspace. Browser storage is neither encrypted nor a secure private account. The existing API remains a separate local development integration. New data is under `pd:careeros:*`; applications continue to use `appTracker:items`. No résumé, coach message, or job detail is sent to a model or a job provider. Saved job availability is unverified. The dashboard does not synthesize user achievements or job recommendations.
 
 ## Current limits and next implementation gates
 

@@ -5,12 +5,12 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "node_modules/**", "playwright-report/**", "test-results/**"],
+    ignores: ["dist/**", "node_modules/**", "playwright-report/**", "test-results/**", "apps/extension/.output/**", "apps/extension/dist/**", "apps/api/**"],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ["src/**/*.{ts,tsx}", "tests/**/*.{ts,tsx}", "*.config.ts"],
+    files: ["src/**/*.{ts,tsx}", "tests/**/*.{ts,tsx}", "*.config.ts", "apps/extension/entrypoints/**/*.{ts,tsx}", "apps/extension/src/**/*.{ts,tsx}", "packages/**/*.{ts,tsx}"],
     languageOptions: {
       globals: {
         ...globals.browser,

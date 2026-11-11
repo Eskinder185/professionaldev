@@ -5,7 +5,7 @@
 - Branch: `main`; baseline HEAD: `5b67a16fbd804e6860904ab94ae40425249b0e94`.
 - The worktree already contained substantial uncommitted CareerOS and other project work. No staged changes existed. The initial inventory contained 133 modified or untracked project files and four tracked deletions. No files were treated as agent-owned merely because they were uncommitted.
 - Ignored build and dependency directories included `apps/api/target/`, `dist/`, `node_modules/`, and `test-results/`. They were excluded from the recovery archive. No environment secrets were copied.
-- Local recovery archive: `<local-audit-root>\recovery\professionaldev-baseline-20261109T220822Z.zip`. The adjacent JSON manifest records SHA-256 values, paths, branch, and HEAD. It includes a tracked patch and staged patch (empty).
+- Local recovery archive: `C:\Users\eskew\.codex\visualizations\2026\11\09\01a1c233-070f-7b80-95fa-714b3d1d8c30\recovery\professionaldev-baseline-20261109T220822Z.zip`. The adjacent JSON manifest records SHA-256 values, paths, branch, and HEAD. It includes a tracked patch and staged patch (empty).
 - Verification: every archived file hash matched its source; a separate restore rehearsal applied the archive over a clean export of baseline HEAD, removed the four recorded deletions, and byte-compared all 133 files successfully. Restore into a **separate directory** at the baseline HEAD, overlay the archive's `files/` tree, then remove paths listed in the manifest's deleted section. Do not overwrite the active worktree to rehearse recovery.
 
 ## Existing application

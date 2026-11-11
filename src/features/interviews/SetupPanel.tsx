@@ -124,17 +124,29 @@ export default function SetupPanel({ config, onChange, onStart, transcription }:
               </div>
             ) : null}
             <div className="rs-field">
-              <label htmlFor={`${id}-stt`}>Transcription</label>
+              <label htmlFor={`${id}-stt`}>Transcription engine</label>
               <select id={`${id}-stt`} value={config.transcription} onChange={(event) => set("transcription", event.target.value as InterviewConfig["transcription"])}>
                 <option value="browser">Live, using this browser's speech recognition</option>
+                <option value="whisper-browser">On-device Whisper AI (100% private, local speech model)</option>
+                <option value="whisper-local">Local Whisper Server (127.0.0.1 faster-whisper / whisper.cpp)</option>
                 <option value="off">Off: I'll type or paste the transcript</option>
               </select>
             </div>
           </div>
           <p className="career-muted">Device names appear after you first allow access. Nothing is turned on until you press Start answer or Turn camera on.</p>
-          <p className={`iv-support iv-support-${transcription?.kind ?? "checking"}`} role="note">
-            {transcription ? transcription.detail : "Checking live transcription support…"}
-          </p>
+          {config.transcription === "whisper-browser" ? (
+            <p className="iv-support iv-support-on-device" role="note">
+              On-device Whisper runs entirely in your browser using local AI. Audio never leaves this device.
+            </p>
+          ) : config.transcription === "whisper-local" ? (
+            <p className="iv-support iv-support-on-device" role="note">
+              Connects to your local Whisper server on 127.0.0.1. Zero cloud egress.
+            </p>
+          ) : (
+            <p className={`iv-support iv-support-${transcription?.kind ?? "checking"}`} role="note">
+              {transcription ? transcription.detail : "Checking live transcription support…"}
+            </p>
+          )}
         </section>
       ) : null}
 

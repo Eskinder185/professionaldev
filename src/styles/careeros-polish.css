@@ -29,3 +29,28 @@
   .career-form-dialog { max-height:calc(100dvh - 32px); }
 }
 @media(max-width:360px) { .career-topbar .career-popover-wrap { display:none; } }
+
+/* CareerOS 4.0 top navigation: five primary destinations in the header; everything else under "More". */
+.career-topbrand { display: inline-flex; align-items: center; gap: 8px; color: rgb(var(--tw-ink)); text-decoration: none; font-size: 15px; letter-spacing: -0.01em; }
+.career-topbrand .career-brand-mark { width: 28px; height: 28px; }
+.career-primary-nav { display: flex; align-items: center; gap: 2px; margin: 0 auto; min-width: 0; }
+.career-primary-link { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 12px; border-radius: 8px; color: rgb(var(--tw-ink-muted)); font-size: 13.5px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.career-primary-link:hover { background: var(--career-soft); color: rgb(var(--tw-ink)); }
+.career-primary-link.is-active { background: var(--career-accent-soft); color: var(--career-accent-text); }
+.career-primary-link:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.career-more-menu { display: flex; flex-direction: column; gap: 2px; width: 220px; padding: 6px; }
+.career-more-menu a { padding: 8px 10px; border-radius: 6px; font-size: 13px; text-decoration: none; color: rgb(var(--tw-ink)); }
+.career-more-menu a:hover { background: var(--career-soft); }
+.career-icon-button { text-decoration: none; }
+.career-sidebar { display: none; }
+.career-search-trigger { width: auto; }
+.career-search-trigger span, .career-search-trigger kbd { display: none; }
+@media (min-width: 1280px) { .career-search-trigger { width: 190px; } .career-search-trigger span, .career-search-trigger kbd { display: inline; } }
+@media (max-width: 1100px) { .career-primary-link span { display: none; } .career-primary-link { padding: 0 11px; } }
+@media (max-width: 900px) {
+  .career-primary-nav, .career-more-wrap { display: none; }
+  .career-bottom-nav { grid-template-columns: repeat(6, 1fr) !important; }
+  .career-breadcrumb { display: none; }
+}
+@media (min-width: 901px) { .career-breadcrumb, .career-menu-button { display: none; } }
+@media (max-width: 430px) { .career-topbrand strong { display: none; } .career-topbar-actions .career-icon-button { width: 34px; } }

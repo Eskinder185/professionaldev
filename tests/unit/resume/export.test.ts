@@ -29,7 +29,7 @@ describe("DOCX export", () => {
     expect(xml).toContain('<w:pStyle w:val="Heading1"/>');
     expect(xml).toContain('<w:numId w:val="1"/>');
     expect(xml).toContain('<w:tab w:val="right"');
-    expect(xml).toContain('<w:pgSz w:w="11909" w:h="16834"/>');
+    expect(xml).toContain('<w:pgSz w:w="11906" w:h="16838"/>');
     expect(xml).not.toContain("<w:tbl>");
   });
 

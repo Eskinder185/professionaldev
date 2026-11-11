@@ -5,3 +5,9 @@ dist/
 playwright-report/
 test-results/
 coverage/
+
+# Generated / local-only (not part of a release)
+apps/extension/.output/
+apps/extension/dist/
+debug.log
+.claude/

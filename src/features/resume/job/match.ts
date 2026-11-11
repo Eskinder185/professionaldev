@@ -52,13 +52,14 @@ const EQUIVALENTS: Record<string, string[]> = {
   "ci/cd": ["GitHub Actions", "GitLab CI", "Jenkins", "CircleCI", "Azure DevOps"],
   "unit testing": ["Jest", "pytest", "JUnit", "Vitest", "Mocha"],
   "data visualization": ["Tableau", "Power BI", "Looker"],
-  virtualization: ["VMware", "Hyper-V", "VirtualBox"],
+  virtualization: ["VMware", "Hyper-V", "VirtualBox", "Proxmox VE"],
   sql: ["PostgreSQL", "MySQL", "Microsoft SQL Server", "SQLite", "Oracle Database"],
   "edr": ["CrowdStrike Falcon", "SentinelOne", "Microsoft Defender"],
   "vulnerability management": ["Nessus", "Qualys", "Tenable", "OpenVAS"],
   "infrastructure as code": ["Terraform", "AWS CloudFormation", "Ansible", "Pulumi"],
   "identity & access management": ["Active Directory", "Okta", "Microsoft Entra ID", "AWS IAM"],
-  "routing and switching": ["Cisco IOS", "OSPF", "BGP", "VLAN"],
+  "routing and switching": ["Cisco IOS", "OSPF", "BGP", "VLAN", "OSI model"],
+  "data center operations": ["Rack installation", "Structured cabling", "RAID", "Hardware troubleshooting"],
 };
 
 type Source = { section: string; label: string; text: string; strong: boolean };
@@ -212,13 +213,15 @@ const WEIGHTS = { required: 3, preferred: 1.5, responsibility: 1, context: 0 } a
 const CREDIT: Record<MatchStatus, number> = { demonstrated: 1, equivalent: 0.8, mentioned: 0.4, insufficient: 0.25, missing: 0 };
 
 export const SCORE_METHOD = [
-  "Each selected requirement gets credit for the evidence found: demonstrated 100%, credible equivalent 80%, mentioned only in skills or summary 40%, cannot be judged automatically 25%, not found 0%.",
-  "Credit is weighted by type: required ×3, preferred ×1.5, responsibility ×1. General-context terms are not scored.",
+  "Each selected confirmed requirement gets credit for the evidence found: demonstrated 100%, credible equivalent 80%, mentioned only in skills or summary 40%, cannot be judged automatically 25%, not found 0%.",
+  "Credit is weighted by type: required ×3, preferred ×1.5, responsibility ×1. General-context terms and unconfirmed ambiguous acronyms are not scored automatically.",
   "Requirement coverage is the weighted share of credit earned.",
   "Evidence quality is the share of matched requirements backed by experience, projects, certifications, or education rather than only a skills list.",
   "Job Description Match Score = 80% requirement coverage + 20% evidence quality.",
   "Document quality (structure and readability checks) is reported separately and does not change the match score.",
 ];
+
+const isConfirmedForScore = (requirement: Requirement) => !requirement.uncertain || requirement.possession === "has";
 
 export function matchResume(resume: Resume, requirements: Requirement[], settings: DocumentSettings, pageCount = 1): MatchResult {
   const sources = collectSources(resume);
@@ -229,19 +232,21 @@ export function matchResume(resume: Resume, requirements: Requirement[], setting
       return { requirement, ...result, group: groupFor(result.status, requirement) };
     });
 
+  const scoredMatches = matches.filter((match) => isConfirmedForScore(match.requirement));
+
   let earned = 0;
   let possible = 0;
-  for (const match of matches) {
+  for (const match of scoredMatches) {
     const weight = WEIGHTS[match.requirement.kind];
     possible += weight;
     earned += weight * CREDIT[match.status];
   }
   const coverage = possible ? Math.round((earned / possible) * 100) : 0;
-  const matched = matches.filter((match) => match.status === "demonstrated" || match.status === "equivalent" || match.status === "mentioned");
+  const matched = scoredMatches.filter((match) => match.status === "demonstrated" || match.status === "equivalent" || match.status === "mentioned");
   const backed = matched.filter((match) => match.evidence.some((item) => !["Skills", "Summary"].includes(item.section)));
   const evidenceQuality = matched.length ? Math.round((backed.length / matched.length) * 100) : 0;
   const met = (kind: Requirement["kind"]) => {
-    const items = matches.filter((match) => match.requirement.kind === kind);
+    const items = scoredMatches.filter((match) => match.requirement.kind === kind);
     return { met: items.filter((match) => match.status === "demonstrated" || match.status === "equivalent").length, total: items.length };
   };
   const checks = documentChecks(resume, settings, pageCount);
@@ -250,7 +255,7 @@ export function matchResume(resume: Resume, requirements: Requirement[], setting
   for (const match of matches) counts[match.group]++;
   return {
     matches,
-    score: matches.length ? Math.round(coverage * 0.8 + evidenceQuality * 0.2) : 0,
+    score: scoredMatches.length ? Math.round(coverage * 0.8 + evidenceQuality * 0.2) : 0,
     coverage,
     requiredCoverage: met("required"),
     preferredCoverage: met("preferred"),

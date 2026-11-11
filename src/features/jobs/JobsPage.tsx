@@ -1,57 +1,184 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { Bookmark, BriefcaseBusiness, ExternalLink, Filter, Plus, Search, ArrowLeft } from "lucide-react";
-import { useLocal, getLocal, setLocal } from "../../hooks/useLocal";
-import { useModalFocus } from "../../hooks/useModalFocus";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { ArrowLeft, Plus, Search, SlidersHorizontal, Server } from "lucide-react";
+import { useLocal } from "../../hooks/useLocal";
+import { AnalysisSidebar, JobBody, JobHeader, JobRow, SkeletonRows } from "./components";
+import { AddJobDialog, BoardsDialog } from "./dialogs";
+import { activeFilterCount, categoriesOf, filterAndSort } from "./filters";
+import { emptyFilters, type JobFilters, type SavedSearch } from "./schema";
+import { removePosting } from "./store";
+import { useJobWorkspace } from "./useJobWorkspace";
+import { useScores } from "./useScores";
+import "../../styles/jobs.css";
 
-export type Job = { id: string; title: string; company: string; location: string; arrangement: string; type: string; url: string; description: string; skills: string[]; savedAt: string; source: "manual" };
-export interface JobSource { id: string; label: string; search(query: string): Promise<Job[]>; }
-export const jobSources: JobSource[] = []; // Authorized feeds can be registered here after their terms and credentials are reviewed.
-type SearchPreset = { id: string; query: string; arrangement: string };
-const emptyDraft = { title: "", company: "", location: "", arrangement: "Not specified", type: "Not specified", url: "", description: "", skills: "" };
 
-export default function JobsPage() {
-  const [jobs, setJobs] = useLocal<Job[]>("pd:careeros:saved-jobs", []);
-  const [presets, setPresets] = useLocal<SearchPreset[]>("pd:careeros:job-searches", []);
-  const [query, setQuery] = useState("");
-  const [arrangement, setArrangement] = useState("Any arrangement");
-  const [selected, setSelected] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [mobileDetail, setMobileDetail] = useState(false);
-  const [mobileFilters, setMobileFilters] = useState(false);
-  const [draft, setDraft] = useState(emptyDraft);
-  const [error, setError] = useState("");
-  const dialogRef = useModalFocus(adding, () => { setAdding(false); setEditingId(null); setError(""); });
-  const filtered = useMemo(() => jobs.filter((job) => `${job.title} ${job.company} ${job.location} ${job.description} ${job.skills.join(" ")}`.toLowerCase().includes(query.toLowerCase()) && (arrangement === "Any arrangement" || job.arrangement === arrangement)), [jobs, query, arrangement]);
-  const active = filtered.find((job) => job.id === selected) || filtered[0];
-  const saveJob = () => {
-    if (!draft.title.trim() || !draft.company.trim()) { setError("Add a job title and company."); return; }
-    if (draft.url && !/^https?:\/\//i.test(draft.url)) { setError("Use a complete http or https link."); return; }
-    const prior = jobs.find((item) => item.id === editingId);
-    const job: Job = { id: prior?.id || crypto.randomUUID(), title: draft.title.trim(), company: draft.company.trim(), location: draft.location.trim(), arrangement: draft.arrangement, type: draft.type, url: draft.url.trim(), description: draft.description.trim(), skills: draft.skills.split(",").map((skill) => skill.trim()).filter(Boolean), savedAt: prior?.savedAt || new Date().toISOString(), source: "manual" };
-    setJobs(prior ? jobs.map((item) => item.id === prior.id ? job : item) : [job, ...jobs]); setSelected(job.id); setMobileDetail(true); setAdding(false); setEditingId(null); setError("");
-    setDraft(emptyDraft);
-  };
-  const editJob = (job: Job) => { setEditingId(job.id); setDraft({ title: job.title, company: job.company, location: job.location, arrangement: job.arrangement, type: job.type, url: job.url, description: job.description, skills: job.skills.join(", ") }); setError(""); setAdding(true); };
-  const openNew = () => { setEditingId(null); setDraft(emptyDraft); setError(""); setAdding(true); };
-  const track = (job: Job) => {
-    const existing = getLocal<{ id: string; company: string; role: string; status: string; date: string; notes?: string }[]>("appTracker:items", []);
-    if (!existing.some((item) => item.notes?.includes(`Job reference: ${job.id}`))) setLocal("appTracker:items", [{ id: crypto.randomUUID(), company: job.company, role: job.title, status: "Saved", date: new Date().toISOString().slice(0,10), notes: `Job reference: ${job.id}${job.url ? `\nPosting: ${job.url}` : ""}` }, ...existing]);
-  };
-  return <div className="career-feature"><div className="career-feature-header"><div><span className="career-overline">OPPORTUNITIES</span><h1>Discover jobs</h1><p>Keep opportunities you find in one place. Live job search is not connected.</p></div><button className="career-quick-create" type="button" onClick={openNew}><Plus size={17} /> Save a posting</button></div>
-    <div className="career-source-notice"><BriefcaseBusiness size={18} /><span><strong>Personal job library.</strong> These are postings you add yourself. Availability and details are not verified by CareerOS.</span></div>
-    <div className={`career-jobs-layout ${mobileDetail ? "is-detail-open" : ""}`}><div className="career-job-mobile-bar"><input aria-label="Search saved postings" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search saved postings" /><button type="button" className="career-secondary-button" aria-expanded={mobileFilters} onClick={() => setMobileFilters(!mobileFilters)}><Filter size={17} /> Filters</button></div><aside className={`career-panel career-filter-panel ${mobileFilters ? "is-open" : ""}`}><h2><Filter size={17} /> Filters</h2><label>Keywords<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Title, company, skill" /></label><label>Work arrangement<select value={arrangement} onChange={(event) => setArrangement(event.target.value)}>{["Any arrangement", "Remote", "Hybrid", "Onsite", "Not specified"].map((option) => <option key={option}>{option}</option>)}</select></label><button type="button" className="career-secondary-button" onClick={() => { if (!presets.some((preset) => preset.query === query && preset.arrangement === arrangement)) setPresets([...presets, { id: crypto.randomUUID(), query, arrangement }]); }}>Save search</button>{presets.length > 0 && <div className="career-saved-searches"><strong>Saved searches</strong>{presets.map((preset) => <button type="button" key={preset.id} onClick={() => { setQuery(preset.query); setArrangement(preset.arrangement); }}>{preset.query || "All jobs"} · {preset.arrangement}</button>)}</div>}</aside>
-      <section className="career-panel career-job-list"><h2>Saved postings <span>{filtered.length}</span></h2>{filtered.length ? filtered.map((job) => <button key={job.id} type="button" className={`career-job-card ${active?.id === job.id ? "selected" : ""}`} onClick={() => { setSelected(job.id); setMobileDetail(true); }}><strong>{job.title}</strong><span>{job.company} · {job.location || "Location not specified"}</span><small>Added by you · {new Date(job.savedAt).toLocaleDateString()}</small></button>) : <div className="career-empty"><div className="career-empty-icon"><Search size={25} /></div><h3>{jobs.length ? "No postings match these filters" : "No saved postings yet"}</h3><p>{jobs.length ? "Try a broader search." : "Save a posting you found, or explore the existing job resource guide."}</p><Link className="career-text-link" to="/resources/job-sites">Explore job sites</Link></div>}</section>
-      <section className="career-panel career-job-detail">{active ? <><button type="button" className="career-secondary-button career-job-mobile-back" onClick={() => setMobileDetail(false)}><ArrowLeft size={16} /> Back to postings</button><span className="career-overline">PERSONAL SAVED POSTING</span><h2>{active.title}</h2><p>{active.company} · {active.location || "Location not specified"}</p><div className="career-job-tags"><span>{active.arrangement}</span><span>{active.type}</span></div>{active.description && <><h3>Details you saved</h3><p className="career-job-description">{active.description}</p></>}{active.skills.length > 0 && <><h3>Skills listed</h3><div className="career-job-tags">{active.skills.map((skill) => <span key={skill}>{skill}</span>)}</div></>}<SkillReview job={active} /><div className="career-job-actions">{active.url && <a className="career-quick-create" href={active.url} target="_blank" rel="noopener noreferrer">Open original posting <ExternalLink size={15} /></a>}<button type="button" className="career-secondary-button" onClick={() => track(active)}>Add to tracker</button><button type="button" className="career-secondary-button" onClick={() => editJob(active)}>Edit posting</button><button type="button" className="career-danger-button" onClick={() => { if (window.confirm(`Remove ${active.title} at ${active.company} from your saved jobs?`)) { setJobs(jobs.filter((job) => job.id !== active.id)); setSelected(null); setMobileDetail(false); } }}>Remove saved job</button></div><p className="career-muted">Check the employer or source for current availability before applying.</p></> : <div className="career-empty"><Bookmark size={28} /><h3>Select a posting</h3><p>Your saved job details will appear here.</p></div>}</section></div>
-    {adding && <div className="career-overlay career-form-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) { setAdding(false); setEditingId(null); } }}><div ref={dialogRef} className="career-form-dialog" role="dialog" aria-modal="true" aria-label={editingId ? "Edit saved job" : "Save a job posting"} tabIndex={-1}><h2>{editingId ? "Edit saved posting" : "Save a posting"}</h2><p>Enter details from a posting you found. CareerOS will label it as user added.</p><div className="career-form-grid"><label>Job title<input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} /></label><label>Company<input value={draft.company} onChange={(event) => setDraft({ ...draft, company: event.target.value })} /></label><label>Location<input value={draft.location} onChange={(event) => setDraft({ ...draft, location: event.target.value })} /></label><label>Arrangement<select value={draft.arrangement} onChange={(event) => setDraft({ ...draft, arrangement: event.target.value })}>{["Not specified", "Remote", "Hybrid", "Onsite"].map((item) => <option key={item}>{item}</option>)}</select></label><label>Employment type<input value={draft.type} onChange={(event) => setDraft({ ...draft, type: event.target.value })} placeholder="Full time, contract…" /></label><label>Original posting URL<input type="url" value={draft.url} onChange={(event) => setDraft({ ...draft, url: event.target.value })} /></label><label className="career-form-wide">Relevant skills, comma separated<input value={draft.skills} onChange={(event) => setDraft({ ...draft, skills: event.target.value })} /></label><label className="career-form-wide">Description or notes<textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} rows={4} /></label></div>{error && <p role="alert" className="career-form-error">{error}</p>}<div className="career-form-actions"><button className="career-secondary-button" type="button" onClick={() => { setAdding(false); setEditingId(null); }}>Cancel</button><button className="career-quick-create" type="button" onClick={saveJob}>{editingId ? "Save changes" : "Save posting"}</button></div></div></div>}
-  </div>;
+function useNarrow(): boolean {
+  const q = "(max-width: 767px)";
+  const [n, setN] = useState(() => typeof window !== "undefined" && window.matchMedia(q).matches);
+  useEffect(() => {
+    const m = window.matchMedia(q);
+    const on = () => setN(m.matches);
+    m.addEventListener("change", on);
+    return () => m.removeEventListener("change", on);
+  }, []);
+  return n;
 }
 
-function SkillReview({ job }: { job: Job }) {
-  const logged = getLocal<{ skill?: string }[]>("pd:resources:skills:list", []);
-  const names = new Set(logged.map((item) => item.skill?.toLowerCase().trim()).filter(Boolean));
-  const reported = job.skills.filter((skill) => names.has(skill.toLowerCase().trim()));
-  const missing = job.skills.filter((skill) => !names.has(skill.toLowerCase().trim()));
-  return <div className="career-skill-review"><h3>Review your fit</h3><p>Based on skills you logged, not verified proficiency. There is no hiring probability score.</p>{job.skills.length ? <><strong>Logged skills to confirm</strong><div className="career-job-tags">{reported.length ? reported.map((skill) => <span key={skill}>{skill}</span>) : <span>None logged yet</span>}</div><strong>Skills to explore</strong><div className="career-job-tags">{missing.length ? missing.map((skill) => <span key={skill}>{skill}</span>) : <span>No other skills listed</span>}</div></> : <p>No skill list was included in this saved posting. Review the original requirements yourself.</p>}<div className="career-job-actions"><Link className="career-secondary-button" to="/resume">Tailor résumé</Link><Link className="career-secondary-button" to="/academy">Explore lessons</Link><Link className="career-secondary-button" to="/career-tools/interview-sim">Prepare interview</Link></div></div>;
+type Stage = "list" | "detail" | "analysis";
+const SALARY_STEPS = [50000, 75000, 100000, 125000, 150000, 200000];
+
+export default function JobsPage() {
+  const ws = useJobWorkspace();
+  const [filters, setFilters] = useLocal<JobFilters>("pd:careeros:jobs:filters", emptyFilters());
+  const f: JobFilters = { ...emptyFilters(), ...filters };
+  // `?select=<posting id>` is used by Documents / Tracker links back to a job.
+  const [selectedId, setSelectedId] = useState<string | null>(() => new URLSearchParams(window.location.search).get("select"));
+  const [stage, setStage] = useState<Stage>(() => (new URLSearchParams(window.location.search).get("select") ? "detail" : "list"));
+  const [dialog, setDialog] = useState<"add" | "boards" | "edit" | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  const narrow = useNarrow();
+  // React 18 has no typed `inert`; spread it so off-screen mobile panes are not focusable.
+  const inertIf = (cond: boolean): Record<string, string> => (narrow && cond ? { inert: "" } : {});
+
+  const total = Object.keys(ws.state.postings).length;
+  const base = useMemo(() => filterAndSort(ws.state, { ...f, sort: "newest" }), [ws.state, f.query, f.location, f.employmentType, f.experience, f.category, f.salaryMin, f.arrangement, f.postedWithinDays, f.savedOnly]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { scores, pending } = useScores(f.sort === "relevance" ? base : [], ws);
+  const list = useMemo(() => {
+    if (f.sort === "newest") return base;
+    return [...base].sort((a, b) => (scores.get(b.id) ?? -1) - (scores.get(a.id) ?? -1));
+  }, [base, scores, f.sort]);
+
+  const active = list.find((p) => p.id === selectedId) ?? list[0] ?? null;
+  const patch = (change: Partial<JobFilters>) => setFilters({ ...f, ...change });
+  const clear = () => setFilters(emptyFilters());
+  const nFilters = activeFilterCount(f);
+  const categories = categoriesOf(ws.state);
+
+  useEffect(() => {
+    if (ws.notice) {
+      const t = setTimeout(() => ws.setNotice(""), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [ws.notice]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const move = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key) || !list.length) return;
+    e.preventDefault();
+    const i = Math.max(0, list.findIndex((p) => p.id === active?.id));
+    const n = e.key === "ArrowDown" ? Math.min(list.length - 1, i + 1) : e.key === "ArrowUp" ? Math.max(0, i - 1) : e.key === "Home" ? 0 : list.length - 1;
+    setSelectedId(list[n].id);
+    requestAnimationFrame(() => listRef.current?.querySelector<HTMLElement>(`[data-job-id="${CSS.escape(list[n].id)}"]`)?.focus());
+  };
+
+  const saveSearch = () => {
+    const name = window.prompt("Name this search", f.query || "My search")?.trim();
+    if (!name) return;
+    const s: SavedSearch = { id: crypto.randomUUID(), name, filters: { ...f, savedOnly: false } };
+    ws.update((st) => ({ ...st, searches: [s, ...st.searches] }));
+  };
+
+  const select = (id: string) => {
+    setSelectedId(id);
+    setStage("detail");
+  };
+
+  return (
+    <div className="jb-page" data-testid="jobs-page">
+      <div className="jb-toolbar">
+        <div>
+          <h1>Jobs</h1>
+          <p className="jb-muted" data-testid="job-count" aria-live="polite">
+            {total === 0 ? "No listings yet" : `${list.length} of ${total} listing${total === 1 ? "" : "s"}${nFilters ? " match your filters" : ""}`}
+            {pending && " · ranking…"}
+          </p>
+        </div>
+        <div className="jb-actions">
+          <button type="button" className="jb-btn" onClick={() => setDialog("boards")} data-testid="btn-boards"><Server size={15} aria-hidden="true" /> Employer boards{ws.state.boards.length ? ` (${ws.state.boards.length})` : ""}</button>
+          <button type="button" className="jb-btn jb-btn-primary" onClick={() => setDialog("add")} data-testid="btn-add-job"><Plus size={15} aria-hidden="true" /> Save a posting</button>
+        </div>
+      </div>
+
+      <div className="jb-filterbar" role="search">
+        <label className="jb-search"><Search size={16} aria-hidden="true" /><input type="search" value={f.query} onChange={(e) => patch({ query: e.target.value })} placeholder="Job title, company or keyword" aria-label="Search jobs" data-testid="filter-query" /></label>
+        <input className="jb-input" value={f.location} onChange={(e) => patch({ location: e.target.value })} placeholder="Location" aria-label="Location" data-testid="filter-location" />
+        <button type="button" className="jb-btn jb-filter-toggle" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}><SlidersHorizontal size={15} aria-hidden="true" /> Filters{nFilters ? ` (${nFilters})` : ""}</button>
+        <div className={`jb-filters ${filtersOpen ? "is-open" : ""}`}>
+          <select aria-label="Employment type" value={f.employmentType} onChange={(e) => patch({ employmentType: e.target.value as JobFilters["employmentType"] })} data-testid="filter-type"><option value="any">Any type</option><option value="full-time">Full-time</option><option value="part-time">Part-time</option><option value="contract">Contract</option><option value="internship">Internship</option></select>
+          <select aria-label="Experience level" value={f.experience} onChange={(e) => patch({ experience: e.target.value as JobFilters["experience"] })} data-testid="filter-experience"><option value="any">Any level</option><option value="entry">Entry level</option><option value="mid">Mid level</option><option value="senior">Senior</option></select>
+          <select aria-label="Category" value={f.category} onChange={(e) => patch({ category: e.target.value })} data-testid="filter-category"><option value="">Any category</option>{categories.map((c) => <option key={c} value={c}>{c}</option>)}</select>
+          <select aria-label="Work arrangement" value={f.arrangement} onChange={(e) => patch({ arrangement: e.target.value as JobFilters["arrangement"] })} data-testid="filter-arrangement"><option value="any">Any arrangement</option><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="onsite">On-site</option></select>
+          <select aria-label="Minimum salary" value={f.salaryMin ?? ""} onChange={(e) => patch({ salaryMin: e.target.value ? Number(e.target.value) : null })} data-testid="filter-salary"><option value="">Any salary</option>{SALARY_STEPS.map((s) => <option key={s} value={s}>{`$${s / 1000}k+ (listed pay only)`}</option>)}</select>
+          <select aria-label="Date posted" value={f.postedWithinDays ?? ""} onChange={(e) => patch({ postedWithinDays: e.target.value ? Number(e.target.value) : null })} data-testid="filter-date"><option value="">Any time</option><option value="1">Past 24 hours</option><option value="7">Past week</option><option value="30">Past month</option></select>
+          <select aria-label="Sort by" value={f.sort} onChange={(e) => patch({ sort: e.target.value as JobFilters["sort"] })} data-testid="filter-sort"><option value="relevance">Sort: Relevance</option><option value="newest">Sort: Newest</option></select>
+          <label className="jb-check"><input type="checkbox" checked={f.savedOnly} onChange={(e) => patch({ savedOnly: e.target.checked })} data-testid="filter-saved" /> Saved only</label>
+          <button type="button" className="jb-btn" onClick={clear} disabled={!nFilters} data-testid="filter-clear">Clear filters</button>
+          <button type="button" className="jb-btn" onClick={saveSearch} data-testid="search-save">Save search</button>
+          {ws.state.searches.length > 0 && (
+            <select aria-label="Saved searches" value="" onChange={(e) => { const s = ws.state.searches.find((x) => x.id === e.target.value); if (s) setFilters({ ...emptyFilters(), ...s.filters }); }} data-testid="search-saved-select">
+              <option value="">Saved searches ({ws.state.searches.length})</option>
+              {ws.state.searches.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          )}
+        </div>
+      </div>
+      {ws.state.searches.length > 0 && (
+        <p className="jb-muted jb-searches">
+          {ws.state.searches.map((s) => (
+            <button key={s.id} type="button" className="jb-chip" onClick={() => setFilters({ ...emptyFilters(), ...s.filters })}>{s.name}<span role="button" tabIndex={0} aria-label={`Delete saved search ${s.name}`} onClick={(e) => { e.stopPropagation(); ws.update((st) => ({ ...st, searches: st.searches.filter((x) => x.id !== s.id) })); }} onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); ws.update((st) => ({ ...st, searches: st.searches.filter((x) => x.id !== s.id) })); } }}> ×</span></button>
+          ))}
+        </p>
+      )}
+      <p className="jb-muted">Live job search is not connected. Listings come from employer boards you connect and postings you add.</p>
+      {ws.notice && <p className="jb-notice" role="status">{ws.notice}</p>}
+
+      {total === 0 ? (
+        <section className="jb-empty" data-testid="jobs-empty">
+          <h2>Start with real listings</h2>
+          <p><strong>No saved postings yet.</strong></p>
+          <p>CareerOS doesn’t ship made-up jobs. Connect an employer’s public job board (Greenhouse, Lever or Ashby) or add a posting you found.</p>
+          <div className="jb-actions"><button className="jb-btn jb-btn-primary" onClick={() => setDialog("boards")}>Connect an employer board</button><button className="jb-btn" onClick={() => setDialog("add")}>Add a job</button></div>
+        </section>
+      ) : (
+        <div className={`jb-split stage-${stage}`} data-testid="jobs-split">
+          <div className="jb-pane jb-pane-list" {...inertIf(stage !== "list")}>
+            <div className="jb-list" ref={listRef} role="listbox" aria-label="Job listings" onKeyDown={move} data-testid="job-list">
+              {list.length === 0 && <div className="jb-empty-sm" data-testid="jobs-no-results"><p>No jobs match these filters.</p><button className="jb-btn" onClick={clear}>Clear filters</button></div>}
+              {list.map((p) => (
+                <JobRow key={p.id} posting={p} selected={p.id === active?.id} saved={ws.state.saved.includes(p.id)} score={scores.get(p.id) ?? null} onSelect={() => select(p.id)} onToggleSave={() => ws.actions.toggleSave(p)} />
+              ))}
+              {pending && <SkeletonRows count={2} />}
+            </div>
+          </div>
+          <div className="jb-pane jb-pane-detail" {...inertIf(stage !== "detail")}>
+            {active ? (
+              <div className="jb-detail" data-testid="job-detail" key={active.id}>
+                <button type="button" className="jb-btn jb-back" onClick={() => setStage("list")}><ArrowLeft size={15} aria-hidden="true" /> Back to jobs</button>
+                <JobHeader posting={active} ws={ws} />
+                {active.source === "manual" && (
+                  <div className="jb-actions">
+                    <button type="button" className="jb-btn" onClick={() => setDialog("edit")}>Edit posting</button>
+                    <button type="button" className="jb-btn" onClick={() => { if (window.confirm(`Remove “${active.title}” from your saved jobs? This can’t be undone.`)) { ws.update((s) => removePosting(s, active.id)); setStage("list"); setSelectedId(null); } }}>Remove saved job</button>
+                  </div>
+                )}
+                <button type="button" className="jb-btn jb-to-analysis" onClick={() => setStage("analysis")} data-testid="btn-open-analysis">Match analysis →</button>
+                <JobBody posting={active} />
+              </div>
+            ) : <p className="jb-muted jb-pad">Select a job to read it.</p>}
+          </div>
+          <div className="jb-pane jb-pane-side" {...inertIf(stage !== "analysis")}>
+            {active && (
+              <>
+                <button type="button" className="jb-btn jb-back jb-back-analysis" onClick={() => setStage("detail")}><ArrowLeft size={15} aria-hidden="true" /> Back to job</button>
+                <AnalysisSidebar posting={active} ws={ws} />
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {dialog === "add" && <AddJobDialog ws={ws} onClose={() => setDialog(null)} onAdded={(id) => { setSelectedId(id); setStage("detail"); }} />}
+      {dialog === "edit" && active && <AddJobDialog ws={ws} editing={active} onClose={() => setDialog(null)} onAdded={() => setStage("detail")} />}
+      {dialog === "boards" && <BoardsDialog ws={ws} onClose={() => setDialog(null)} />}
+    </div>
+  );
 }

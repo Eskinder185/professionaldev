@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Copy, Download } from "lucide-react";
 import EmptyState from "../ui/EmptyState";
+import { formatMediaError, getSupportedMimeType } from "../../hooks/useMediaRecorder";
 
 type Props = {
   script: string;
@@ -40,23 +41,43 @@ export default function TeleprompterRecorder({ script, scriptReady }: Props) {
     if (!scriptReady) return;
     setRecordErr(null);
     setStarting(true);
+    let stream: MediaStream | null = null;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      if (mediaRef.current) mediaRef.current.srcObject = stream;
-      const rec = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp9,opus" });
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new DOMException("Media devices not supported in this environment", "NotSupportedError");
+      }
+      // Attempt camera + audio; fall back gracefully to audio-only if camera is unavailable or denied
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      } catch {
+        // If camera fails, attempt audio-only recording
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
+      const isVideo = stream.getVideoTracks().length > 0;
+      if (mediaRef.current && isVideo) {
+        mediaRef.current.srcObject = stream;
+      }
+      const supported = getSupportedMimeType(isVideo);
+      const rec = new MediaRecorder(stream, supported ? { mimeType: supported } : undefined);
       const chunks: BlobPart[] = [];
-      rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+      rec.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
+      };
+      rec.onerror = (e: any) => {
+        setRecordErr(e?.error?.message || "Recorder encountered an error.");
+      };
       rec.onstop = () => {
-        const blob = new Blob(chunks, { type: rec.mimeType });
+        const type = rec.mimeType || supported || (isVideo ? "video/webm" : "audio/webm");
+        const blob = new Blob(chunks, { type });
         setMediaURL(URL.createObjectURL(blob));
-        (stream.getTracks() || []).forEach((t) => t.stop());
+        stream?.getTracks().forEach((t) => t.stop());
       };
       recorderRef.current = rec;
       rec.start();
       setRecording(true);
     } catch (e) {
-      console.error(e);
-      setRecordErr("Could not access camera or microphone. Check permissions and try again.");
+      if (stream) stream.getTracks().forEach((t) => t.stop());
+      setRecordErr(formatMediaError(e, true));
     } finally {
       setStarting(false);
     }

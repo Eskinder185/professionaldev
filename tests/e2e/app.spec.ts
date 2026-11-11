@@ -62,3 +62,32 @@ test("exports an existing STAR story as a PDF download", async ({ page }) => {
   expect(download.suggestedFilename()).toBe("star-story.pdf");
 });
 
+test("renders the Java roadmap through the API integration", async ({ page }) => {
+  if (!process.env.LIVE_API) {
+    await page.route("**/api/v1/roadmaps", (route) => route.fulfill({
+      contentType: "application/json",
+      json: [
+        {
+          id: "java-spring-backend",
+          title: "Java and Spring Backend",
+          description: "Progress from Java language fundamentals to a tested Spring Boot REST API.",
+          targetRole: "Backend Java Developer",
+          estimatedWeeks: 14,
+          stages: [
+            {
+              sequence: 1,
+              title: "Modern Java",
+              outcomes: ["Model data with classes and records", "Use collections and exceptions"],
+            },
+          ],
+        },
+      ],
+    }));
+  }
+
+  await page.goto("./resources/roadmaps");
+
+  await expect(page.getByText("Live API catalog")).toBeVisible();
+  await expect(page.getByText("Progress from Java language fundamentals to a tested Spring Boot REST API.")).toBeVisible();
+  await expect(page.getByText("Backend Java Developer")).toBeVisible();
+});

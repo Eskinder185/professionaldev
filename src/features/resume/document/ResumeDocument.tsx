@@ -1,44 +1,128 @@
-import { forwardRef, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { forwardRef, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { DocumentSettings, Resume } from "../model/types";
-import { FONT_STACKS, PAPER } from "../model/defaults";
-import { buildBlocks, renderBlocks, type DocBlock } from "./blocks";
+import { layoutResume } from "../layout/engine";
+import { defaultMeasurer, loadMeasurer, type Measurer } from "../layout/measurer";
+import { CSS_FAMILY, FONT_FAMILY } from "../layout/templates";
+import type { FitReport, LayoutPage, LayoutResult, PlacedLine } from "../layout/types";
 
-const PX_PER_IN = 96;
+const PT = 96 / 72;
 
-/**
- * Split measured blocks into pages. `tops`/`bottoms` come from one continuous
- * layout at the page's content width, so margins between blocks are included.
- */
-export function paginate(blocks: Pick<DocBlock, "keepWithNext">[], tops: number[], bottoms: number[], contentHeight: number): number[][] {
-  if (!blocks.length) return [[]];
-  const pages: number[][] = [[]];
-  let pageStart = tops[0] ?? 0;
-  for (let index = 0; index < blocks.length; index++) {
-    const page = pages[pages.length - 1];
-    const overflows = bottoms[index] - pageStart > contentHeight + 0.5;
-    if (overflows && page.length) {
-      // Carry trailing "keep with next" blocks (headings, entry titles) to the new page.
-      const carried: number[] = [];
-      while (page.length > 1 && blocks[page[page.length - 1]].keepWithNext) carried.unshift(page.pop()!);
-      pages.push([...carried, index]);
-      pageStart = tops[carried[0] ?? index];
-    } else page.push(index);
-  }
-  return pages;
+/** Loads the font metrics used for layout. Resolves once, then layout is synchronous. */
+export function useMeasurer(): Measurer | null {
+  const [measurer, setMeasurer] = useState<Measurer | null>(null);
+  useEffect(() => {
+    let live = true;
+    loadMeasurer().then((m) => live && setMeasurer(() => m));
+    return () => {
+      live = false;
+    };
+  }, []);
+  return measurer;
 }
 
-export function documentStyle(settings: DocumentSettings): CSSProperties {
-  const paper = PAPER[settings.paper];
-  return {
-    "--rd-font": FONT_STACKS[settings.font].css,
-    "--rd-size": `${settings.fontSize}pt`,
-    "--rd-section-space": `${settings.sectionSpacing}pt`,
-    "--rd-indent": `${settings.bulletIndent}pt`,
-    "--rd-margin": `${settings.margin}in`,
-    "--rd-page-w": `${paper.widthIn}in`,
-    "--rd-page-h": `${paper.heightIn}in`,
-  } as CSSProperties;
+export function useLayout(resume: Resume, settings: DocumentSettings): LayoutResult {
+  const measurer = useMeasurer();
+  return useMemo(() => layoutResume(resume, settings, measurer ?? defaultMeasurer), [measurer, resume, settings]);
+}
+
+function LineBox({ line }: { line: PlacedLine }) {
+  const style: CSSProperties = {
+    top: line.y * PT,
+    height: line.height * PT,
+    lineHeight: `${line.height * PT}px`,
+    fontSize: `${line.size * PT}px`,
+    color: line.color ?? "#000",
+  };
+  const className = `rd-line rd-line-${line.paraKind}`;
+  const children = (
+    <>
+      {line.glyph ? (
+        <span className="rd-glyph" aria-hidden="true" style={{ left: line.glyph.x * PT }}>
+          {line.glyph.text}
+        </span>
+      ) : null}
+      {line.runs.map((run, i) => (
+        <span
+          key={i}
+          className="rd-run"
+          style={{
+            left: run.x * PT,
+            fontWeight: run.style.includes("bold") ? 700 : 400,
+            fontStyle: run.style.includes("italic") ? "italic" : "normal",
+          }}
+        >
+          {run.text}
+        </span>
+      ))}
+    </>
+  );
+  if (line.paraKind === "name") return <h1 className={className} data-kind={line.paraKind} style={style}>{children}</h1>;
+  if (line.paraKind === "heading") return <h2 className={className} data-kind={line.paraKind} style={style}>{children}</h2>;
+  if (line.paraKind === "summary" || line.paraKind === "skill" || line.paraKind === "paragraph" || line.paraKind === "headline" || line.paraKind === "contact" || line.paraKind === "cert") {
+    return <p className={className} data-kind={line.paraKind} style={style}>{children}</p>;
+  }
+  return <div className={className} data-kind={line.paraKind} style={style}>{children}</div>;
+}
+
+const paraKeyOf = (lineKey: string) => lineKey.replace(/:\d+$/, "");
+const listGroupOf = (lineKey: string) => paraKeyOf(lineKey).replace(/-b\d+$/, "");
+
+function renderPageLines(lines: PlacedLine[]): ReactNode[] {
+  const out: ReactNode[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.paraKind === "bullet") {
+      const group = listGroupOf(line.key);
+      const groupLines: PlacedLine[] = [];
+      while (i < lines.length && lines[i].paraKind === "bullet" && listGroupOf(lines[i].key) === group) {
+        groupLines.push(lines[i++]);
+      }
+      i--;
+      const bullets: PlacedLine[][] = [];
+      for (const gl of groupLines) {
+        const last = bullets[bullets.length - 1];
+        if (last && paraKeyOf(last[0].key) === paraKeyOf(gl.key)) last.push(gl);
+        else bullets.push([gl]);
+      }
+      out.push(
+        <ul key={`list-${line.key}`} className="rd-bullets" role="list">
+          {bullets.map((bLines) => (
+            <li key={paraKeyOf(bLines[0].key)} className="rd-bullet-item" role="listitem">
+              {bLines.map((bl) => (
+                <LineBox key={bl.key} line={bl} />
+              ))}
+            </li>
+          ))}
+        </ul>,
+      );
+    } else {
+      out.push(<LineBox key={line.key} line={line} />);
+    }
+  }
+  return out;
+}
+
+function Page({ page, layout, index, count, forPrint }: { page: LayoutPage; layout: LayoutResult; index: number; count: number; forPrint?: boolean }) {
+  const family = CSS_FAMILY[layout.family];
+  return (
+    <article
+      className="rd-page"
+      aria-label={forPrint ? undefined : `Page ${index + 1} of ${count}`}
+      data-page={index + 1}
+      style={{ width: `${layout.page.widthPt * PT}px`, height: `${layout.page.heightPt * PT}px`, fontFamily: family, ["--rd-page-h" as string]: `${layout.page.heightPt * PT}px` } as CSSProperties}
+    >
+      {page.rules.map((rule, i) => (
+        <span key={`r${i}`} className="rd-rule" aria-hidden="true" style={{ left: rule.x1 * PT, top: rule.y * PT, width: (rule.x2 - rule.x1) * PT, borderTop: `${rule.width * PT}px solid ${rule.color}` }} />
+      ))}
+      {renderPageLines(page.lines)}
+      {!forPrint && count > 1 ? (
+        <span className="rd-page-number" aria-hidden="true">
+          {index + 1} / {count}
+        </span>
+      ) : null}
+    </article>
+  );
 }
 
 type Props = {
@@ -47,80 +131,38 @@ type Props = {
   zoom: number;
   printing?: boolean;
   onPagesChange?: (count: number) => void;
+  onFitChange?: (fit: FitReport | null, layout: LayoutResult | null) => void;
 };
 
-const ResumeDocument = forwardRef<HTMLDivElement, Props>(function ResumeDocument({ resume, settings, zoom, printing, onPagesChange }, ref) {
-  const blocks = useMemo(() => buildBlocks(resume, settings), [resume, settings]);
-  const measureRef = useRef<HTMLDivElement>(null);
-  const [pages, setPages] = useState<number[][]>([blocks.map((_, index) => index)]);
-  const paper = PAPER[settings.paper];
-  const contentHeight = (paper.heightIn - settings.margin * 2) * PX_PER_IN;
-  const className = `rd-doc rd-tpl-${settings.template} rd-header-${settings.headerLayout}`;
-  const style = documentStyle(settings);
+/**
+ * The live document. Lines are placed by the layout engine at absolute
+ * positions, the same positions the PDF export uses, so the preview is the
+ * document, not an approximation of it.
+ */
+const ResumeDocument = forwardRef<HTMLDivElement, Props>(function ResumeDocument({ resume, settings, zoom, printing, onPagesChange, onFitChange }, ref) {
+  const layout = useLayout(resume, settings);
+  const pageCount = layout.pages.length;
+  useEffect(() => onPagesChange?.(pageCount), [pageCount, onPagesChange]);
+  useEffect(() => onFitChange?.(layout.fit, layout), [layout, onFitChange]);
+  const style = { "--rd-family": CSS_FAMILY[FONT_FAMILY[settings.font]] } as CSSProperties;
 
-  useLayoutEffect(() => {
-    const measure = () => {
-      const root = measureRef.current;
-      if (!root) return;
-      const elements = Array.from(root.querySelectorAll<HTMLElement>("[data-block]"));
-      const origin = root.getBoundingClientRect().top;
-      const tops: number[] = [];
-      const bottoms: number[] = [];
-      elements.forEach((element) => {
-        const index = Number(element.dataset.block);
-        const rect = element.getBoundingClientRect();
-        tops[index] = rect.top - origin;
-        bottoms[index] = rect.bottom - origin;
-      });
-      const next = paginate(blocks, tops, bottoms, contentHeight);
-      setPages((current) => (JSON.stringify(current) === JSON.stringify(next) ? current : next));
-    };
-    measure();
-    let cancelled = false;
-    document.fonts?.ready.then(() => !cancelled && measure()).catch(() => undefined);
-    // Re-measure when the preview becomes visible (e.g. switching mobile tabs) or fonts swap.
-    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => measure()) : null;
-    if (measureRef.current) observer?.observe(measureRef.current);
-    return () => {
-      cancelled = true;
-      observer?.disconnect();
-    };
-  }, [blocks, contentHeight, settings]);
-
-  const pageCount = pages.length;
-  useLayoutEffect(() => onPagesChange?.(pageCount), [pageCount, onPagesChange]);
-
-  const indexOf = (block: DocBlock) => blocks.indexOf(block);
-  const renderPages = (forPrint = false) =>
-    pages.map((page, pageIndex) => (
-      <article
-        key={pageIndex}
-        className="rd-page"
-        aria-label={forPrint ? undefined : `Page ${pageIndex + 1} of ${pageCount}`}
-        data-page={pageIndex + 1}
-      >
-        <div className="rd-page-content">{renderBlocks(page.map((index) => blocks[index]).filter(Boolean), indexOf)}</div>
-        {!forPrint && pageCount > 1 ? <span className="rd-page-number" aria-hidden="true">{pageIndex + 1} / {pageCount}</span> : null}
-      </article>
-    ));
-
+  const className = `rd-doc rd-tpl-${settings.template}`;
   return (
     <>
       <div className={className} style={style} ref={ref}>
         <div className="rd-pages" style={{ zoom } as CSSProperties}>
-          {renderPages()}
-        </div>
-        <div className="rd-measure" aria-hidden="true">
-          <div className="rd-page-content" ref={measureRef}>
-            {renderBlocks(blocks, indexOf)}
-          </div>
+          {layout.pages.map((page, index) => (
+            <Page key={index} page={page} layout={layout} index={index} count={layout.pages.length} />
+          ))}
         </div>
       </div>
       {printing
         ? createPortal(
             <div id="resume-print-root" className={className} style={style}>
               <style>{`@page { size: ${settings.paper === "a4" ? "A4" : "letter"}; margin: 0; }`}</style>
-              {renderPages(true)}
+              {layout.pages.map((page, index) => (
+                <Page key={index} page={page} layout={layout} index={index} count={layout.pages.length} forPrint />
+              ))}
             </div>,
             document.body,
           )

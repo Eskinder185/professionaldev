@@ -23,7 +23,7 @@ test("user-added job enters the application tracker", async ({ page, isMobile })
   await dialog.getByLabel("Company").fill("Example Company");
   await dialog.getByRole("button", { name: "Save posting" }).click();
   if (isMobile) await expect(page.getByRole("heading", { name: "Analyst Intern" })).toBeVisible();
-  else await expect(page.getByRole("button", { name: /Analyst Intern/ })).toBeVisible();
+  else await expect(page.getByRole("option", { name: /Analyst Intern/ })).toBeVisible();
   await page.getByRole("button", { name: "Add to tracker" }).click();
   await page.goto("./applications");
   await expect(page.getByText("Analyst Intern")).toBeVisible();
@@ -37,12 +37,12 @@ test("application status and timeline reflect the same persisted record", async 
   await dialog.getByLabel("Role").fill("Analyst");
   await dialog.getByRole("button", { name: "Add application" }).click();
   await page.getByRole("combobox", { name: "Move Analyst at Example Company" }).selectOption("Interview");
-  await page.getByRole("button", { name: "Table" }).click();
+  await page.getByRole("button", { name: "List" }).click();
   await expect(page.getByRole("combobox", { name: "Status for Analyst" })).toHaveValue("Interview");
   await page.getByRole("button", { name: "Timeline" }).click();
   await expect(page.getByText("Date not set")).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: "Table" }).click();
+  await page.getByRole("button", { name: "List" }).click();
   await expect(page.getByRole("combobox", { name: "Status for Analyst" })).toHaveValue("Interview");
 });
 
@@ -88,7 +88,7 @@ test("settings backup round trips application records and raw legacy preferences
     localStorage.setItem("pd:resources:certs:path", "cloud");
   });
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export my data" }).click();
+  await page.getByRole("button", { name: /Export (all|my) data/i }).click();
   const download = await downloadPromise;
   const stream = await download.createReadStream();
   const parts: Buffer[] = [];
@@ -99,10 +99,16 @@ test("settings backup round trips application records and raw legacy preferences
   expect(parsed.entries["pd:resources:certs:path"]).toBe("cloud");
   await page.evaluate(() => { localStorage.removeItem("appTracker:items"); localStorage.removeItem("pd:resources:certs:path"); });
   page.once("dialog", (prompt) => prompt.accept());
-  await Promise.all([
-    page.waitForEvent("framenavigated"),
-    page.locator('input[type="file"]').setInputFiles({ name: "backup.json", mimeType: "application/json", buffer: backup }),
-  ]);
+  await page.locator('input[type="file"]').setInputFiles({ name: "backup.json", mimeType: "application/json", buffer: backup });
+  const restoreBtn = page.getByRole("button", { name: "Restore verified backup" });
+  if (await restoreBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await Promise.all([
+      page.waitForEvent("framenavigated"),
+      restoreBtn.click(),
+    ]);
+  } else {
+    await page.waitForEvent("framenavigated");
+  }
   await expect.poll(() => page.evaluate(() => localStorage.getItem("pd:resources:certs:path"))).toBe("cloud");
   await page.goto("./applications");
   await expect(page.getByText("Backup Co")).toBeVisible();
@@ -176,7 +182,7 @@ test("focus tasks and résumé versions survive reload", async ({ page }) => {
   await expect(page.getByRole("textbox", { name: "Full name" })).toHaveValue("Taylor Student");
 });
 
-test("workspace overlays close with Escape and sidebar preference persists", async ({ page, isMobile }) => {
+test("workspace overlays and the More menu close with Escape", async ({ page, isMobile }) => {
   await page.goto("./dashboard");
   await expect(page.getByRole("heading", { name: "Your career, moving forward." })).toBeVisible();
   await page.keyboard.press("/");
@@ -189,8 +195,10 @@ test("workspace overlays close with Escape and sidebar preference persists", asy
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog", { name: "Mobile workspace navigation" })).toHaveCount(0);
   } else {
-    await page.getByRole("button", { name: "Collapse sidebar" }).click();
-    await page.reload();
-    await expect(page.getByRole("button", { name: "Expand sidebar" })).toBeVisible();
+    // The sidebar was replaced by top navigation: five primary links plus a "More destinations" menu.
+    await page.getByRole("button", { name: "More destinations" }).click();
+    await expect(page.getByRole("menuitem", { name: "Résumé Studio" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("menuitem", { name: "Résumé Studio" })).toHaveCount(0);
   }
 });

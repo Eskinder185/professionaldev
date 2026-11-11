@@ -192,9 +192,20 @@ export default function JobRequirementsPanel({ job: stored, title, onChange, onT
   return (
     <section className="rs-job" aria-labelledby="rs-job-title">
       <h3 id="rs-job-title">Job description</h3>
-      <div className="rs-field">
-        <label htmlFor={`${descriptionId}-role`}>Target job title</label>
-        <input id={`${descriptionId}-role`} value={title} onChange={(event) => onTitleChange(event.target.value)} placeholder="e.g. IT Support Specialist" />
+      <div className="rs-two">
+        <div className="rs-field">
+          <label htmlFor={`${descriptionId}-company`}>Target company</label>
+          <input
+            id={`${descriptionId}-company`}
+            value={job.company ?? ""}
+            onChange={(event) => onChange({ ...job, company: event.target.value })}
+            placeholder="e.g. Amazon"
+          />
+        </div>
+        <div className="rs-field">
+          <label htmlFor={`${descriptionId}-role`}>Target job title</label>
+          <input id={`${descriptionId}-role`} value={title} onChange={(event) => onTitleChange(event.target.value)} placeholder="e.g. IT Support Specialist" />
+        </div>
       </div>
       <div className="rs-field">
         <label htmlFor={descriptionId}>Paste the job description</label>
@@ -205,6 +216,19 @@ export default function JobRequirementsPanel({ job: stored, title, onChange, onT
       </button>
       {stale ? <p className="rs-notice" role="note">The description changed after the last analysis. Re-analyze to update; your answers and added requirements are kept.</p> : null}
       <p className="career-muted">Found with a built-in skill dictionary and wording rules, in this browser. Review every item. Your answers here never change the résumé.</p>
+
+      {job.metadata && (job.metadata.company || job.metadata.location || job.metadata.workMode || job.metadata.compensation || job.metadata.employmentType) ? (
+        <div className="rs-job-meta" aria-label="Detected job metadata">
+          <strong>Detected posting metadata (excluded from skill scoring):</strong>
+          <div className="rs-job-meta-chips">
+            {job.metadata.company ? <span className="rs-badge">Company: {job.metadata.company}</span> : null}
+            {job.metadata.location ? <span className="rs-badge">Location: {job.metadata.location}</span> : null}
+            {job.metadata.workMode ? <span className="rs-badge">Work mode: {job.metadata.workMode}</span> : null}
+            {job.metadata.compensation ? <span className="rs-badge">Compensation: {job.metadata.compensation}</span> : null}
+            {job.metadata.employmentType ? <span className="rs-badge">Type: {job.metadata.employmentType}</span> : null}
+          </div>
+        </div>
+      ) : null}
 
       {job.analyzedAt || job.requirements.length ? (
         <>

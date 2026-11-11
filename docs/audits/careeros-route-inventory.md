@@ -1,7 +1,5 @@
 # Route inventory
 
-> Historical audit of the full uncommitted worktree. The selective CareerOS commit excludes the separate auth and Spring Boot roadmap/API changes; see the commit manifest for exact candidate verification.
-
 `src/App.tsx` declares **44 concrete routes** plus a wildcard. Each concrete route was opened directly in a fresh local preview at 390px and 1440px. All 88 requests returned HTTP 200, rendered a heading, had no uncaught page error or failed local asset request, and had no document-level horizontal overflow after the tracker fix. Lazy routes showed the shared loading status when needed. This route sweep verifies rendering and reflow, while interaction coverage is described in [test results](careeros-test-results.md). An unknown path rendered the “Page not found” state in the primary-route matrix.
 
 | Path | Screen / primary function | Navigation entry | Figma frame |

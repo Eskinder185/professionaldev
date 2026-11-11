@@ -69,7 +69,7 @@
 .iv-live p { margin: 0 0 4px; }
 .iv-live time, .iv-segments time { margin-right: 6px; font-size: 11px; color: rgb(var(--tw-ink-muted)); font-variant-numeric: tabular-nums; }
 .iv-interim { color: rgb(var(--tw-ink-muted)); font-style: italic; }
-.iv-warning { margin: 0; padding: 7px 9px; border-radius: 7px; background: #fef3c7; color: #78350f; font-size: 12px; }
+.iv-warning { margin: 0; padding: 7px 9px; border-radius: 7px; background: var(--cos-warning-soft); color: var(--cos-warning-text); border: 1px solid var(--cos-warning-border); font-size: 12px; }
 .iv-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px; border: 1px solid var(--career-border); border-radius: 14px; background: var(--career-surface); }
 .iv-controls-spacer { flex: 1; }
 .iv-control {

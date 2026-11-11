@@ -77,6 +77,51 @@ describe("extractRequirements", () => {
     expect(groups).not.toContain("Databases");
     expect(groups.slice(-2)).toEqual(["Responsibilities", "Other technical terms"]);
   });
+
+  it("never classifies city names, US state abbreviations, salary units, company names, or generic uppercase words as job qualifications", () => {
+    const jd = `
+      Company: Amazon Data Services Inc.
+      Location: Stone Mountain, GA 30083 (On-site near Atlanta, GA and Ashburn, VA)
+      Compensation: $85,000 - $110,000/yr USD ($42/hr base + RSU)
+      Full-Time Shift Role
+
+      Requirements
+      - MUST HAVE 2+ years of experience with Linux, TCP/IP, and structured cabling in Atlanta, GA or Austin, TX.
+      - REQUIRED: Able to lift 50 LBS, work FULL TIME DAY or NIGHT SHIFT, and wear PPE in Stone Mountain, GA.
+      - Experience at Amazon Data Services Inc. or Lone Star Health Services LLC is a PLUS.
+      - Familiarity with Proxmox VE, Debian, SSH, and CompTIA Server+ preferred.
+    `;
+    const result = extractRequirements(jd);
+    const terms = result.requirements.map((r) => r.term.toUpperCase());
+
+    // Real requirements ARE extracted:
+    expect(result.requirements.some((r) => r.term === "Linux")).toBe(true);
+    expect(result.requirements.some((r) => r.term === "TCP/IP")).toBe(true);
+    expect(result.requirements.some((r) => r.term === "Structured cabling")).toBe(true);
+    expect(result.requirements.some((r) => r.term === "Proxmox VE")).toBe(true);
+    expect(result.requirements.some((r) => r.term === "Debian")).toBe(true);
+    expect(result.requirements.some((r) => r.term === "SSH")).toBe(true);
+    expect(result.requirements.some((r) => r.term === "CompTIA Server+")).toBe(true);
+
+    // Non-requirements are NEVER extracted as skills or uncertain terms:
+    for (const forbidden of [
+      "GA", "VA", "TX", "ATL", "ATLANTA", "STONE", "MOUNTAIN", "AUSTIN", "ASHBURN",
+      "USD", "YR", "HR", "RSU", "LBS", "PPE",
+      "LLC", "INC", "AMAZON",
+      "MUST", "HAVE", "REQUIRED", "FULL", "TIME", "DAY", "NIGHT", "SHIFT", "PLUS",
+    ]) {
+      expect(terms).not.toContain(forbidden);
+    }
+
+    // Metadata is extracted separately into result.metadata:
+    expect(result.metadata).toMatchObject({
+      company: "Amazon Data Services Inc",
+      location: "Stone Mountain, GA 30083 (On-site near Atlanta, GA and Ashburn, VA)",
+      workMode: "On-site",
+      employmentType: "Full-time",
+    });
+    expect(result.metadata.compensation).toMatch(/\$85,000/);
+  });
 });
 
 describe("requirement editing", () => {

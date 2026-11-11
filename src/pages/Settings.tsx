@@ -1,131 +1,125 @@
-import { getLocal, useLocal } from "../hooks/useLocal";
+import { useEffect, useState } from "react";
+import { useLocal } from "../hooks/useLocal";
 import PageHeader from "../components/ui/PageHeader";
+import AppearanceControl from "../components/AppearanceControl";
+import { AIConnectionsSection } from "../features/ai/AIConnectionsSection";
+import { clearCareerData, createBackup, parseBackup, previewRestore, restoreBackup, verifyBackup, type VerifiedBackup } from "../features/storage/backup";
+import "../features/resume/resume-studio.css";
 
-async function idbOpen() {
-  return new Promise<IDBDatabase>((resolve, reject) => {
-    const req = indexedDB.open("pd:speech", 1);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains("blobs")) db.createObjectStore("blobs");
-    };
-    req.onerror = () => reject(req.error);
-    req.onsuccess = () => resolve(req.result);
-  });
-}
-
-async function listVideoKeys() {
-  const history = getLocal<unknown[]>("pd:speech:history", []);
-  return history.flatMap((item) => {
-    if (typeof item !== "object" || item === null || !("blobKey" in item)) return [];
-    return typeof item.blobKey === "string" ? [item.blobKey] : [];
-  });
-}
-
-const projectKey = (key: string) => key.startsWith("pd:") || key.startsWith("pd_") || key.startsWith("appTracker:") || key.startsWith("starBuilder:") || key.startsWith("interviewSim:") || key === "pd-theme";
-const projectKeys = () => Array.from({ length: localStorage.length }, (_, index) => localStorage.key(index)).filter((key): key is string => Boolean(key && projectKey(key))).sort();
-
-async function exportData() {
-  const entries = Object.fromEntries(projectKeys().map((key) => [key, localStorage.getItem(key)]));
-  const data = { format: "professionaldev-local-storage-v2", entries, videoBlobKeys: await listVideoKeys() };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "professionaldev-data.json";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-async function importData(file: File, onWarn: (msg: string) => void) {
-  const text = await file.text();
-  const obj: unknown = JSON.parse(text);
-  if (!obj || typeof obj !== "object") throw new Error("This file does not contain a data object.");
-  const record = obj as Record<string, unknown>;
-  const current = record.format === "professionaldev-local-storage-v2";
-  const entries = current ? record.entries : record;
-  if (!entries || typeof entries !== "object" || Array.isArray(entries)) throw new Error("This file has no valid data entries.");
-  const imported = Object.entries(entries).filter(([key]) => projectKey(key));
-  if (!imported.length) throw new Error("No ProfessionalDev data was found in this file.");
-  if (current && imported.some(([, value]) => typeof value !== "string")) throw new Error("The backup contains an invalid entry.");
-  if (!confirm(`Import ${imported.length} data entries? Existing entries with the same names will be replaced.`)) return;
-  imported.forEach(([key, value]) => localStorage.setItem(key, current ? value as string : JSON.stringify(value)));
-  const expected: string[] = Array.isArray(record.videoBlobKeys) ? record.videoBlobKeys : Array.isArray(record["pd:videos"]) ? record["pd:videos"] : [];
-  if (expected.length) onWarn(`This backup references ${expected.length} video recording(s), but does not contain their video files.`);
-  location.reload();
-}
-
-async function resetAll() {
-  for (const key of projectKeys()) localStorage.removeItem(key);
-  const db = await idbOpen();
-  await new Promise<void>((res, rej) => {
-    const tx = db.transaction("blobs", "readwrite");
-    tx.objectStore("blobs").clear();
-    tx.oncomplete = () => res();
-    tx.onerror = () => rej(tx.error);
-  });
-  db.close();
-}
-
+type FolderPickerWindow = Window & { showDirectoryPicker?: (options?: { mode: "readwrite" }) => Promise<FileSystemDirectoryHandle> };
 const block = "border-t border-black/[0.07] py-10 dark:border-white/[0.09] sm:py-12";
+const folders = ["Profiles", "Resumes", "Cover-Letters", "Applications", "Interviews", "Transcripts", "Agent-History", "Backups"];
+
+function downloadBackup(data: VerifiedBackup) {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `CareerOS-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
 
 export default function Settings() {
   const [reduced, setReduced] = useLocal<boolean>("pd:settings:reducedMotion", false);
-  const toggleReduced = () => setReduced((value) => !value);
+  const [folder, setFolder] = useState<FileSystemDirectoryHandle | null>(null);
+  const [backup, setBackup] = useState<VerifiedBackup | null>(null);
+  const [message, setMessage] = useState("");
+  const [usage, setUsage] = useState("Checking…");
+  const [busy, setBusy] = useState(false);
 
+  useEffect(() => {
+    if (!navigator.storage?.estimate) { setUsage("Unavailable in this browser"); return; }
+    navigator.storage.estimate().then(({ usage: used, quota }) => {
+      setUsage(`${((used ?? 0) / 1048576).toFixed(1)} MB used of ${((quota ?? 0) / 1048576).toFixed(0)} MB estimated quota`);
+    }).catch(() => setUsage("Unavailable in this browser"));
+  }, [message]);
+
+  async function run(action: () => Promise<void>) {
+    setBusy(true);
+    setMessage("");
+    try { await action(); } catch (error) { setMessage(error instanceof Error ? error.message : "Storage operation failed."); }
+    finally { setBusy(false); }
+  }
+
+  async function chooseFolder() {
+    const picker = (window as FolderPickerWindow).showDirectoryPicker;
+    if (!picker) { setMessage("Folder access is unavailable. Browser storage and downloadable backups still work."); return; }
+    try {
+      const selected = await picker({ mode: "readwrite" });
+      const workspace = await selected.getDirectoryHandle("CareerOS", { create: true });
+      for (const name of folders) await workspace.getDirectoryHandle(name, { create: true });
+      setFolder(workspace);
+      setMessage(`CareerOS workspace created in ${selected.name}. Folder permission lasts for this page session.`);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setMessage(error instanceof Error ? error.message : "Folder access failed.");
+    }
+  }
+
+  async function exportAll() {
+    const data = await createBackup();
+    await verifyBackup(data);
+    downloadBackup(data);
+    if (folder) {
+      const backups = await folder.getDirectoryHandle("Backups", { create: true });
+      const file = await backups.getFileHandle(`CareerOS-backup-${Date.now()}.json`, { create: true });
+      const writer = await file.createWritable();
+      try { await writer.write(JSON.stringify(data)); await writer.close(); }
+      catch (error) { await writer.abort(); throw error; }
+    }
+    setMessage("Backup verified and downloaded." + (folder ? " A copy was saved in the selected workspace." : ""));
+  }
+
+  async function readBackup(file: File) {
+    const parsed: unknown = JSON.parse(await file.text());
+    const result = await parseBackup(parsed);
+    setBackup(result.backup);
+    setMessage(result.warning ?? "Backup verified. Review the restore preview below before applying it.");
+  }
+
+  const preview = backup ? previewRestore(backup) : null;
   return (
     <div className="mx-auto max-w-4xl space-y-0 pb-16">
-      <PageHeader title="Settings" sub="Control motion, privacy, and data management." />
-
-      <section className={block}>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="font-semibold text-ink dark:text-white">Reduced motion</h2>
-            <p className="mt-1 text-sm text-ink-muted">Disable auto-scroll animations in teleprompter.</p>
-          </div>
-          <button
-            type="button"
-            className={`btn min-h-11 px-5 ${reduced ? "btn-primary" : ""}`}
-            aria-pressed={reduced}
-            onClick={toggleReduced}
-          >
-            {reduced ? "On" : "Off"}
-          </button>
-        </div>
-        <p className="mt-6 text-sm text-ink-muted">Privacy: data stays in your browser. Videos are stored in IndexedDB.</p>
+      <PageHeader title="Settings" sub="Control AI connections, motion, privacy, and data management." />
+      <section className={block}><AIConnectionsSection /></section>
+      <section className={block} aria-labelledby="appearance-heading">
+        <h2 id="appearance-heading" className="font-semibold text-ink dark:text-white">Appearance</h2>
+        <p className="mb-4 mt-1 text-sm text-ink-muted">Choose how CareerOS looks. Your choice is remembered on this device.</p>
+        <AppearanceControl />
       </section>
-
       <section className={block}>
-        <h2 className="font-semibold text-ink dark:text-white">Data management</h2>
-        <p className="mt-2 text-sm text-ink-muted">JSON backup includes browser records and application history. Video files stored in IndexedDB are not included.</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" className="btn min-h-11 px-4" onClick={exportData}>
-            Export my data
-          </button>
-          <label className="btn career-file-upload min-h-11 cursor-pointer px-4">
-            Import my data
-            <input
-              type="file"
-              accept="application/json"
-              className="sr-only"
-              onChange={async (e) => {
-                const f = e.target.files?.[0];
-                if (f) try { await importData(f, (msg) => alert(msg)); } catch (cause) { alert(cause instanceof Error ? cause.message : "Could not import this backup."); }
-              }}
-            />
+        <h2 className="font-semibold text-ink dark:text-white">Reduced motion</h2>
+        <p className="mt-1 text-sm text-ink-muted">Disable auto-scroll animations in teleprompter.</p>
+        <button type="button" className={`btn mt-4 min-h-11 px-5 ${reduced ? "btn-primary" : ""}`} aria-pressed={reduced} onClick={() => setReduced((value) => !value)}>{reduced ? "On" : "Off"}</button>
+      </section>
+      <section className={block} aria-labelledby="storage-heading">
+        <h2 id="storage-heading" className="font-semibold text-ink dark:text-white">Storage &amp; Privacy</h2>
+        <p className="mt-2 text-sm text-ink-muted">CareerOS works without a cloud account. Career records currently live in this browser’s storage. Saved interview recordings live in IndexedDB. Clearing site data or using another browser removes access to them unless you have a backup.</p>
+        <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+          <div><dt className="font-medium">Browser storage</dt><dd>{typeof indexedDB === "undefined" ? "IndexedDB unavailable" : "IndexedDB available"}</dd></div>
+          <div><dt className="font-medium">Usage</dt><dd>{usage}</dd></div>
+          <div><dt className="font-medium">Workspace folder</dt><dd>{folder?.name ?? "None selected"}</dd></div>
+          <div><dt className="font-medium">Folder access</dt><dd>{(window as FolderPickerWindow).showDirectoryPicker ? "Supported; permission required" : "Unavailable in this browser"}</dd></div>
+        </dl>
+        <p className="mt-3 text-sm text-ink-muted">The selected folder receives a CareerOS workspace and backup copies when you export. Active records remain in browser storage. Folder access must be granted again after reopening the page.</p>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <button type="button" className="btn min-h-11 px-4" disabled={busy} onClick={chooseFolder}>Choose local folder</button>
+          <button type="button" className="btn min-h-11 px-4" disabled={busy} onClick={() => run(exportAll)}>Export all data</button>
+          <label className="btn career-file-upload min-h-11 cursor-pointer px-4">Verify / import backup
+            <input type="file" accept="application/json,.json" className="sr-only" disabled={busy} onChange={(event) => { const file = event.target.files?.[0]; if (file) void run(() => readBackup(file)); event.target.value = ""; }} />
           </label>
-          <button
-            type="button"
-            className="btn min-h-11 px-4"
-            onClick={async () => {
-              if (confirm("Reset all ProfessionalDev data?")) {
-                await resetAll();
-                location.reload();
-              }
-            }}
-          >
-            Reset all
-          </button>
         </div>
+        {preview && <div className="mt-5 rounded-xl border border-black/10 p-4 text-sm dark:border-white/10">
+          <h3 className="font-semibold">Restore preview</h3>
+          <p className="mt-1">Created {new Date(backup!.createdAt).toLocaleString()}. {preview.entries} browser records, {preview.media} media records; {preview.replacing} browser records have the same keys and will be replaced. Other data remains.</p>
+          <button type="button" className="btn mt-3 min-h-11 px-4" disabled={busy} onClick={() => run(async () => { await restoreBackup(backup!); setBackup(null); setMessage("Backup restored. Reloading…"); window.location.reload(); })}>Restore verified backup</button>
+        </div>}
+        <div className="mt-8 border-t border-black/10 pt-5 dark:border-white/10">
+          <h3 className="font-medium">Clear user data</h3>
+          <p className="mt-1 text-sm text-ink-muted">Deletes CareerOS browser records and saved recordings on this device. Export a backup first if you may need them.</p>
+          <button type="button" className="btn mt-3 min-h-11 px-4" disabled={busy} onClick={() => { if (window.confirm("Delete all CareerOS browser data and saved recordings on this device?")) void run(async () => { await clearCareerData(); window.location.reload(); }); }}>Clear user data</button>
+        </div>
+        {message && <p role="status" className="mt-4 text-sm">{message}</p>}
       </section>
     </div>
   );

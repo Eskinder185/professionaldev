@@ -26,9 +26,12 @@ export function normalizeJob(value: unknown): JobTarget | undefined {
   if (typeof value !== "object" || value === null) return undefined;
   const job = value as Partial<JobTarget>;
   const requirements = Array.isArray(job.requirements) ? job.requirements : [];
+  const meta = typeof job.metadata === "object" && job.metadata !== null ? job.metadata : undefined;
   return {
     title: String(job.title ?? ""),
+    company: job.company ? String(job.company) : undefined,
     description: String(job.description ?? ""),
+    metadata: meta,
     analyzedAt: job.analyzedAt,
     analyzedDescription: job.analyzedDescription,
     removedTerms: Array.isArray(job.removedTerms) ? job.removedTerms.map(String) : [],
@@ -56,7 +59,7 @@ export function normalizeJob(value: unknown): JobTarget | undefined {
  * detected requirements the user removed stay removed.
  */
 export function analyzeJob(job: JobTarget): JobTarget {
-  const { requirements: detected } = extractRequirements(job.description);
+  const { requirements: detected, metadata } = extractRequirements(job.description);
   const previous = new Map(job.requirements.map((item) => [item.term.toLowerCase(), item]));
   const removed = new Set((job.removedTerms ?? []).map((term) => term.toLowerCase()));
   const merged: Requirement[] = [];
@@ -68,7 +71,15 @@ export function analyzeJob(job: JobTarget): JobTarget {
     previous.delete(key);
   }
   for (const prior of previous.values()) if (prior.origin === "user") merged.push(prior);
-  return { ...job, requirements: merged, analyzedAt: new Date().toISOString(), analyzedDescription: job.description };
+  const company = job.company?.trim() || metadata.company;
+  return {
+    ...job,
+    company,
+    metadata: { ...metadata, company: company || metadata.company },
+    requirements: merged,
+    analyzedAt: new Date().toISOString(),
+    analyzedDescription: job.description,
+  };
 }
 
 export function addRequirement(job: JobTarget, term: string, category: string, kind: RequirementKind): JobTarget {

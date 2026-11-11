@@ -3,6 +3,8 @@ import { flushSync } from "react-dom";
 import { ChevronLeft, ChevronRight, ClipboardPaste, Copy, Download, FileText, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Plus, Printer, RotateCcw, Trash2, Upload } from "lucide-react";
 import { getLocal, setLocal } from "../../hooks/useLocal";
 import ResumeDocument from "./document/ResumeDocument";
+import FitAssistant from "./fit/FitAssistant";
+import type { FitReport, LayoutResult } from "./layout/types";
 import { exportPlainText } from "./document/exportText";
 import ResumeEditor, { EDITOR_SECTIONS, type EditorSection } from "./editor/ResumeEditor";
 import DocumentSettingsPanel, { TemplatePicker } from "./editor/DocumentSettingsPanel";
@@ -13,10 +15,18 @@ import { parseResumeText } from "./parse/parseResume";
 import ParseReview from "./review/ParseReview";
 import JobRequirementsPanel from "./job/JobRequirementsPanel";
 import MatchPanel from "./job/MatchPanel";
+import AIAssistantPanel from "./ai/AIAssistantPanel";
+import MasterProfileSelector from "./tailor/MasterProfileSelector";
 import { documentChecks } from "./review/checks";
+import { analyzeJob } from "./job/requirements";
+import { loadAutoApplyQueue } from "../autoapply/storage";
+import { loadJobStore } from "../jobs/store";
+import { analysisText } from "../jobs/analysis";
+import { buildAnalysisSnapshots, summarizeVersions } from "../autoapply/analysisSync";
+import { sendExtensionMessage } from "../autoapply/extensionBridge";
 import "./resume-studio.css";
 
-type MobileTab = "edit" | "preview" | "requirements" | "review";
+type MobileTab = "edit" | "preview" | "requirements" | "ai" | "review";
 const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5];
 const LAYOUT_KEY = "pd:careeros:resume-layout";
 
@@ -43,12 +53,14 @@ export default function ResumeStudioPage() {
   const [leftView, setLeftView] = useState<"content" | "design" | "import">("content");
   const [section, setSection] = useState<EditorSection>("contact");
   const [mobileTab, setMobileTab] = useState<MobileTab>("edit");
-  const [rightView, setRightView] = useState<"job" | "review">("job");
+  const [rightView, setRightView] = useState<"job" | "ai" | "review">("job");
   const [jobView, setJobView] = useState<"requirements" | "match">("requirements");
   const [layout, setLayout] = useState(() => getLocal(LAYOUT_KEY, { left: true, right: true }));
   const [zoom, setZoom] = useState<number | "fit">("fit");
   const [fitZoom, setFitZoom] = useState(1);
   const [pageCount, setPageCount] = useState(1);
+  const [fit, setFit] = useState<FitReport | null>(null);
+  const [showFit, setShowFit] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [printing, setPrinting] = useState(false);
   const [status, setStatus] = useState("");
@@ -59,6 +71,73 @@ export default function ResumeStudioPage() {
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   const active = versions.find((version) => version.id === activeId) || versions[0];
+
+  // `?tailorFor=<queue item id>` is used by the extension's "Tailor Résumé" button. It opens a
+  // separate tailored draft (a copy of the Master Profile with the job attached); the master is
+  // never modified. Everything after that is the normal Studio review flow.
+  const tailorFor = useMemo(() => new URLSearchParams(window.location.search).get("tailorFor"), []);
+  // `?tailorJob=<posting id>` does the same from the Jobs / Matches pages (no AutoApply queue item needed).
+  const tailorJobId = useMemo(() => new URLSearchParams(window.location.search).get("tailorJob"), []);
+  const tailorInit = useRef(false);
+  useEffect(() => {
+    if ((!tailorFor && !tailorJobId) || tailorInit.current) return;
+    tailorInit.current = true;
+    const queued = tailorFor ? loadAutoApplyQueue().find((q) => q.id === tailorFor) : undefined;
+    const posting = tailorJobId ? loadJobStore().postings[tailorJobId] : undefined;
+    const item = queued
+      ? { title: queued.title, company: queued.company, jobDescription: queued.jobDescription }
+      : posting
+        ? { title: posting.title, company: posting.company, jobDescription: analysisText(posting) }
+        : undefined;
+    if (!item) {
+      setError("That job could not be found in CareerOS. Open it from Jobs or AutoApply again.");
+      return;
+    }
+    const master = versions.find((v) => v.kind === "master") ?? versions[0];
+    if (!master) return;
+    if (item.jobDescription.trim().length < 16) {
+      setError("This queued job has no description yet, so there is nothing to tailor against. Add the job description in AutoApply.");
+      return;
+    }
+    const existing = versions.find((v) => v.kind === "tailored" && ((posting && v.jobId === posting.id) || (v.company === item.company && v.role === item.title)));
+    if (existing) {
+      setActiveId(existing.id);
+      setStatus(`Opened your existing tailored version for ${item.title} at ${item.company}.`);
+    } else {
+      const job = analyzeJob({ title: item.title, company: item.company, description: item.jobDescription, requirements: [] });
+      addVersion(
+        newVersion(`${item.company} — ${item.title} (tailoring draft)`, structuredClone(master.resume), {
+          kind: "tailored",
+          masterId: master.id,
+          company: item.company,
+          role: item.title,
+          jobId: posting?.id,
+          settings: { ...master.settings, pagePreference: "one" },
+          job,
+        }),
+        `Started a tailored draft for ${item.title} at ${item.company}. Master Profile “${master.name}” was not changed.`,
+      );
+    }
+    setRightView("job");
+    setJobView("match");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // While tailoring for an extension job, keep the extension's match analysis current.
+  useEffect(() => {
+    if (!tailorFor || !active) return;
+    const item = loadAutoApplyQueue().find((q) => q.id === tailorFor);
+    if (!item) return;
+    const timer = window.setTimeout(() => {
+      const isJobVersion = active.kind === "tailored" && active.company === item.company && active.role === item.title;
+      void sendExtensionMessage("SYNC_ANALYSIS", {
+        resumeVersions: summarizeVersions(versions),
+        analyses: buildAnalysisSnapshots([item], versions),
+        ...(isJobVersion ? { selectResume: { applicationId: item.id, versionId: active.id } } : {}),
+      });
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [tailorFor, versions, active]);
 
   useEffect(() => setLocal(RESUME_DOCS_KEY, versions), [versions]);
   useEffect(() => setLocal("pd:careeros:resume-active", active?.id ?? null), [active?.id]);
@@ -150,6 +229,8 @@ export default function ResumeStudioPage() {
     setCurrentPage(page);
   };
 
+  const onFitChange = useCallback((next: FitReport | null, _layout: LayoutResult | null) => setFit(next), []);
+  const blockedByFit = Boolean(active && active.settings.pagePreference === "one" && fit && !fit.fitsOnePage);
   const checks = useMemo(() => (active ? documentChecks(active.resume, active.settings, pageCount) : []), [active, pageCount]);
   const openIssues = active ? active.issues.filter((issue) => !active.resolvedIssues.includes(issue.id)) : [];
 
@@ -165,6 +246,11 @@ export default function ResumeStudioPage() {
 
   const exportFile = async (format: "pdf" | "docx") => {
     if (!active) return;
+    if (blockedByFit) {
+      setShowFit(true);
+      setError(`One-page export is blocked: ${fit?.label}. Use Optimize to one page, or allow multiple pages for this version.`);
+      return;
+    }
     setExporting(true);
     setError("");
     try {
@@ -190,9 +276,11 @@ export default function ResumeStudioPage() {
   const selectTab = (tab: MobileTab) => {
     setMobileTab(tab);
     if (tab === "requirements") setRightView("job");
+    if (tab === "ai") setRightView("ai");
     if (tab === "review") setRightView("review");
   };
   const requirementCount = active?.job?.requirements.filter((item) => item.selected).length ?? 0;
+  const masterVersion = versions.find((v) => v.kind === "master") || versions[versions.length - 1] || active;
 
   return (
     <div className="career-feature rs-studio-page">
@@ -219,9 +307,17 @@ export default function ResumeStudioPage() {
       <p className="rs-status" role="status" aria-live="polite">{status}</p>
 
       <div className="rs-tabs" role="tablist" aria-label="Résumé Studio panels">
-        {(["edit", "preview", "requirements", "review"] as MobileTab[]).map((tab) => (
+        {(["edit", "preview", "requirements", "ai", "review"] as MobileTab[]).map((tab) => (
           <button key={tab} role="tab" type="button" aria-selected={mobileTab === tab} className={mobileTab === tab ? "selected" : ""} onClick={() => selectTab(tab)}>
-            {tab === "edit" ? "Edit" : tab === "preview" ? "Preview" : tab === "requirements" ? `Requirements${requirementCount ? ` (${requirementCount})` : ""}` : `Review${openIssues.length ? ` (${openIssues.length})` : ""}`}
+            {tab === "edit"
+              ? "Edit"
+              : tab === "preview"
+                ? "Preview"
+                : tab === "requirements"
+                  ? `Requirements · Job Match${requirementCount ? ` (${requirementCount})` : ""}`
+                  : tab === "ai"
+                    ? "AI"
+                    : `Review${openIssues.length ? ` (${openIssues.length})` : ""}`}
           </button>
         ))}
       </div>
@@ -254,7 +350,7 @@ export default function ResumeStudioPage() {
                         <input id="rs-version-name" value={active.name} onChange={(event) => updateActive({ name: event.target.value })} />
                       </div>
                       <div className="rs-version-actions">
-                        <button type="button" className="career-secondary-button" onClick={() => addVersion({ ...structuredClone(active), id: crypto.randomUUID(), name: `${active.name} (copy)`, createdAt: new Date().toISOString() }, `Duplicated ${active.name}.`)}>
+                        <button type="button" className="career-secondary-button" onClick={() => addVersion({ ...structuredClone(active), id: crypto.randomUUID(), name: `${active.name} (copy)`, kind: "tailored", masterId: masterVersion?.id, createdAt: new Date().toISOString() }, `Duplicated ${active.name}.`)}>
                           <Copy size={14} /> Duplicate
                         </button>
                         <button
@@ -270,6 +366,35 @@ export default function ResumeStudioPage() {
                           <Trash2 size={14} /> Delete
                         </button>
                       </div>
+                      {masterVersion ? (
+                        <MasterProfileSelector
+                          masterVersion={masterVersion}
+                          activeVersion={active}
+                          job={active.job}
+                          onCreateTailored={(name, tailoredResume, tailoredSettings, meta) => {
+                            addVersion(
+                              {
+                                ...structuredClone(active),
+                                id: crypto.randomUUID(),
+                                name,
+                                kind: "tailored",
+                                masterId: masterVersion.id,
+                                company: meta.company,
+                                role: meta.role,
+                                resume: tailoredResume,
+                                settings: { ...tailoredSettings, pagePreference: "one" },
+                                createdAt: new Date().toISOString(),
+                                updatedAt: new Date().toISOString(),
+                              },
+                              `Created tailored one-page version “${name}”. Master Profile “${masterVersion.name}” was not changed.`,
+                            );
+                          }}
+                          onUpdateActive={(resume, message) => {
+                            updateActive({ resume });
+                            setStatus(message);
+                          }}
+                        />
+                      ) : null}
                     </>
                   ) : null}
                 </div>
@@ -357,7 +482,7 @@ export default function ResumeStudioPage() {
               <button type="button" className="career-secondary-button" disabled={!active || exporting} onClick={() => void exportFile("docx")}>
                 <Download size={15} /> DOCX
               </button>
-              <button type="button" className="career-quick-create" disabled={!active} onClick={() => { flushSync(() => setPrinting(true)); window.print(); setPrinting(false); }}>
+              <button type="button" className="career-quick-create" disabled={!active} onClick={() => { if (blockedByFit) { setShowFit(true); setError(`One-page print is blocked: ${fit?.label}.`); return; } flushSync(() => setPrinting(true)); window.print(); setPrinting(false); }}>
                 <Printer size={15} /> Print / Save as PDF
               </button>
             </div>
@@ -367,13 +492,30 @@ export default function ResumeStudioPage() {
               <div className="rs-template-strip">
                 <TemplatePicker settings={active.settings} onChange={(settings) => updateActive({ settings })} />
               </div>
-              {active.settings.pagePreference === "one" && pageCount > 1 ? (
-                <p className="rs-notice" role="note">
-                  This résumé runs to {pageCount} pages. Text is kept at {active.settings.fontSize} pt rather than shrunk; consider trimming older or less relevant content.
-                </p>
-              ) : null}
-              <div className="rs-canvas" ref={scrollerRef} onScroll={onScroll} tabIndex={0} aria-label="Document pages, scrollable">
-                <ResumeDocument resume={active.resume} settings={active.settings} zoom={effectiveZoom} printing={printing} onPagesChange={setPageCount} />
+              <div className="rs-fit-bar">
+                <span className={`rs-fit-chip ${fit?.fitsOnePage ? "ok" : "warn"}`} aria-live="polite" data-testid="page-fit">
+                  {fit ? (active.settings.pagePreference === "one" ? fit.label : `${pageCount} page${pageCount === 1 ? "" : "s"} (multi-page allowed)`) : "Measuring…"}
+                </span>
+                <button type="button" className="career-secondary-button" onClick={() => setShowFit((value) => !value)} aria-expanded={showFit}>
+                  Optimize to One Page
+                </button>
+              </div>
+              {showFit ? (
+                <FitAssistant
+                  resume={active.resume}
+                  settings={active.settings}
+                  job={active.job}
+                  versionName={active.name}
+                  onClose={() => setShowFit(false)}
+                  onApplyLayout={(settings) => { updateActive({ settings }); setStatus("Layout adjustments applied. Your content was not changed."); }}
+                  onAllowMultiPage={() => { updateActive({ settings: { ...active.settings, pagePreference: "multi" } }); setShowFit(false); setStatus("This version now allows multiple pages."); }}
+                  onCreateTailored={(resume, settings, name) => {
+                    addVersion({ ...structuredClone(active), id: crypto.randomUUID(), name, kind: "tailored", masterId: masterVersion?.id, resume, settings: { ...settings, pagePreference: "one" }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, `Created “${name}”. “${active.name}” was not changed.`);
+                    setShowFit(false);
+                  }}
+                />
+              ) : null}              <div className="rs-canvas" ref={scrollerRef} onScroll={onScroll} tabIndex={0} aria-label="Document pages, scrollable">
+                <ResumeDocument resume={active.resume} settings={active.settings} zoom={effectiveZoom} printing={printing} onPagesChange={setPageCount} onFitChange={onFitChange} />
               </div>
             </>
           ) : (
@@ -384,11 +526,11 @@ export default function ResumeStudioPage() {
         </section>
 
         {/* Right: review */}
-        <aside className={`${panelClass("requirements", "review")} rs-right`} aria-label="Job match and review">
+        <aside className={`${panelClass("requirements", "ai", "review")} rs-right`} aria-label="Job match and review">
           {layout.right ? (
             <>
               <div className="rs-panel-head">
-                <h2>{rightView === "job" ? "Job match" : "Review"}</h2>
+                <h2>{rightView === "job" ? "Job match" : rightView === "ai" ? "Local AI" : "Review"}</h2>
                 <button type="button" className="rs-icon-button rs-collapse" aria-label="Collapse review panel" onClick={() => setLayout({ ...layout, right: false })}>
                   <PanelRightClose size={16} />
                 </button>
@@ -397,11 +539,29 @@ export default function ResumeStudioPage() {
                 <button type="button" role="tab" aria-selected={rightView === "job"} className={rightView === "job" ? "selected" : ""} onClick={() => setRightView("job")}>
                   Job match{requirementCount ? ` (${requirementCount})` : ""}
                 </button>
+                <button type="button" role="tab" aria-selected={rightView === "ai"} className={rightView === "ai" ? "selected" : ""} onClick={() => setRightView("ai")}>
+                  AI
+                </button>
                 <button type="button" role="tab" aria-selected={rightView === "review"} className={rightView === "review" ? "selected" : ""} onClick={() => setRightView("review")}>
                   Document review{openIssues.length ? ` (${openIssues.length})` : ""}
                 </button>
               </div>
-              {active && rightView === "job" ? (
+              {active && rightView === "ai" ? (
+                <AIAssistantPanel
+                  resume={active.resume}
+                  settings={active.settings}
+                  job={active.job ?? { title: "", description: "", requirements: [] }}
+                  onJobChange={(job) => updateActive({ job })}
+                  onStatus={setStatus}
+                  onApply={(change, message) => {
+                    updateActive({
+                      ...(change.resume ? { resume: change.resume } : {}),
+                      ...(change.settings ? { settings: change.settings } : {}),
+                    });
+                    setStatus(message);
+                  }}
+                />
+              ) : active && rightView === "job" ? (
                 <>
                 <div className="rs-segmented rs-two-way" role="tablist" aria-label="Job match view">
                   <button type="button" role="tab" aria-selected={jobView === "requirements"} className={jobView === "requirements" ? "selected" : ""} onClick={() => setJobView("requirements")}>

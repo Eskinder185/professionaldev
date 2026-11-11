@@ -136,6 +136,10 @@ export type DocumentSettings = {
   headerLayout: "left" | "center";
   pagePreference: "one" | "multi";
   sectionOrder: SectionKey[];
+  /** Sections excluded from the document. Their content stays in the résumé data. */
+  hiddenSections?: SectionKey[];
+  /** Line pitch as a multiple of font size (default 1.22). */
+  lineSpacing?: number;
 };
 
 export type ImportSource = {
@@ -161,6 +165,8 @@ export type Requirement = {
   phrases: string[];
   /** Sentence(s) the term appeared in, for transparency. */
   snippets: string[];
+  /** The kind of line each snippet came from, so evidence can quote the line that justifies the final kind. */
+  snippetKinds?: RequirementKind[];
   category: string;
   kind: RequirementKind;
   /** Included in coverage review. Preselected for detected requirements. */
@@ -171,13 +177,23 @@ export type Requirement = {
   uncertain?: boolean;
 };
 
+export type JobMetadata = {
+  company?: string;
+  location?: string;
+  workMode?: "Remote" | "Hybrid" | "On-site";
+  compensation?: string;
+  employmentType?: string;
+};
+
 export type JobTarget = {
   title: string;
+  company?: string;
   description: string;
   analyzedAt?: string;
   /** Description text at the time of the last analysis, to warn when it has changed. */
   analyzedDescription?: string;
   requirements: Requirement[];
+  metadata?: JobMetadata;
   /** Detected terms the user removed; re-analysis will not bring them back. */
   removedTerms?: string[];
   /** Suggestion keys the user rejected; they stay hidden. */
@@ -187,6 +203,17 @@ export type JobTarget = {
 export type ResumeVersion = {
   id: string;
   name: string;
+  /** Master Profile holds the complete verified history; tailored versions are one-page job documents. */
+  kind?: "master" | "tailored";
+  /** ID of the Master Profile this tailored résumé was created from. */
+  masterId?: string;
+  company?: string;
+  role?: string;
+  /** Id of the job posting (CareerOS job store) this tailored version was made for. */
+  jobId?: string;
+  /** Documents-library flags. */
+  favorite?: boolean;
+  isDefault?: boolean;
   createdAt: string;
   updatedAt: string;
   resume: Resume;

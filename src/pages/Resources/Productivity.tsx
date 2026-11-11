@@ -17,7 +17,9 @@ export default function Productivity() {
           return parsed as Settings;
         }
       }
-    } catch { /* Keep the existing fallback when audio or storage is unavailable. */ }
+    } catch {
+      // Fall back to defaults when persisted settings are unavailable or invalid.
+    }
     return { focusMin: 25, shortMin: 5, longMin: 15, cyclesBeforeLong: 4, autoStartNext: true };
   });
   const [mode, setMode] = useState<"Focus" | "Short" | "Long">("Focus");
@@ -29,6 +31,7 @@ export default function Productivity() {
   const [ambient, setAmbient] = useState<"off" | "white" | "pink" | "brown">("off");
   const oscRef = useRef<AudioContext | null>(null);
   const tickRef = useRef<number | null>(null);
+  const handledCompletionRef = useRef(false);
 
   useEffect(() => { localStorage.setItem("pd:resources:pomodoro:settings", JSON.stringify(settings)); }, [settings]);
   useEffect(() => { localStorage.setItem("pd:resources:pomodoro:history", JSON.stringify(history)); }, [history]);
@@ -40,10 +43,19 @@ export default function Productivity() {
   }, [running]);
 
   useEffect(() => {
-    if (remaining !== 0) return;
+    if (remaining !== 0) {
+      handledCompletionRef.current = false;
+      return;
+    }
+    if (handledCompletionRef.current) return;
+    handledCompletionRef.current = true;
+
     setRunning(false);
     chime();
-    setHistory([{ date: new Date().toISOString(), mode, minutes: durationFor(mode, settings) }, ...history].slice(0, 50));
+    setHistory((currentHistory) => [
+      { date: new Date().toISOString(), mode, minutes: durationFor(mode, settings) },
+      ...currentHistory,
+    ].slice(0, 50));
     if (mode === "Focus") setCycle((c) => c + 1);
     if (settings.autoStartNext) {
       const next = nextMode(mode, cycle + 1, settings);
@@ -54,7 +66,7 @@ export default function Productivity() {
     } else {
       setShowBreak(randomBreak());
     }
-  }, [remaining]);
+  }, [remaining, mode, cycle, settings]);
 
   useEffect(() => {
     setRemaining(durationFor(mode, settings) * 60);
@@ -76,13 +88,17 @@ export default function Productivity() {
 
   function toggleAmbient(kind: typeof ambient) {
     setAmbient(kind);
-    try { oscRef.current?.close(); } catch { /* Keep the existing fallback when audio or storage is unavailable. */ }
+    try {
+      oscRef.current?.close();
+    } catch {
+      // An already-closed audio context does not need further recovery.
+    }
     if (kind === "off") return;
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination);
     o.type = kind === "white" ? "square" : kind === "pink" ? "sawtooth" : "triangle";
     o.frequency.value = kind === "white" ? 100 : kind === "pink" ? 60 : 40; g.gain.value = 0.02; o.start();
-    (oscRef as any).current = ctx;
+    oscRef.current = ctx;
   }
 
   const mm = String(Math.floor(remaining / 60)).padStart(2, "0");

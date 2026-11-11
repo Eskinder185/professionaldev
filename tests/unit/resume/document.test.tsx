@@ -2,7 +2,7 @@ import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 afterEach(cleanup);
-import ResumeDocument, { paginate } from "../../../src/features/resume/document/ResumeDocument";
+import ResumeDocument from "../../../src/features/resume/document/ResumeDocument";
 import { exportPlainText } from "../../../src/features/resume/document/exportText";
 import { defaultSettings } from "../../../src/features/resume/model/defaults";
 import { LEGACY_VERSIONS_KEY, loadVersions } from "../../../src/features/resume/model/storage";
@@ -14,43 +14,23 @@ import { CLASSIC_RESUME } from "../../fixtures/resumes";
 describe("ResumeDocument", () => {
   const { resume } = parseResumeText(CLASSIC_RESUME);
 
-  it("renders real headings and bullet lists instead of one paragraph", () => {
+  it("renders positioned lines for every section from the layout engine", async () => {
     render(<ResumeDocument resume={resume} settings={defaultSettings()} zoom={1} />);
-    const page = screen.getByRole("article", { name: "Page 1 of 1" });
-    expect(within(page).getByRole("heading", { level: 1, name: "Jordan Rivera" })).toBeInTheDocument();
-    const headings = within(page).getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
-    expect(headings).toEqual(["Professional Summary", "Technical Skills", "Experience", "Projects", "Education", "Certifications", "Awards"]);
-    const lists = within(page).getAllByRole("list");
-    expect(lists.length).toBeGreaterThanOrEqual(4);
-    expect(within(lists[0]).getAllByRole("listitem")).toHaveLength(3);
+    const page = await screen.findByRole("article", { name: "Page 1 of 1" });
+    expect(within(page).getByText("Jordan Rivera")).toBeInTheDocument();
+    for (const heading of ["TECHNICAL SKILLS", "EXPERIENCE", "PROJECTS", "EDUCATION", "CERTIFICATIONS"]) expect(within(page).getByText(heading)).toBeInTheDocument();
     expect(within(page).getByText("Jan 2022 – Present")).toBeInTheDocument();
+    expect(page.querySelectorAll(".rd-line-bullet").length).toBeGreaterThanOrEqual(6);
   });
 
-  it("follows the chosen section order and template", () => {
-    const settings = { ...defaultSettings("technical") };
-    const { container } = render(<ResumeDocument resume={resume} settings={settings} zoom={1} />);
+  it("follows the chosen section order and template", async () => {
+    const { container } = render(<ResumeDocument resume={resume} settings={defaultSettings("technical")} zoom={1} />);
+    await screen.findByRole("article");
     expect(container.querySelector(".rd-tpl-technical")).not.toBeNull();
-    const headings = within(screen.getByRole("article")).getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
-    expect(headings.slice(0, 4)).toEqual(["Professional Summary", "Technical Skills", "Projects", "Experience"]);
+    const headings = Array.from(container.querySelectorAll(".rd-line-heading")).map((node) => node.textContent);
+    expect(headings.slice(0, 4)).toEqual(["PROFESSIONAL SUMMARY", "TECHNICAL SKILLS", "CERTIFICATIONS", "PROJECTS"]);
   });
 });
-
-describe("paginate", () => {
-  const blocks = [{ keepWithNext: false }, { keepWithNext: true }, { keepWithNext: false }, { keepWithNext: false }];
-
-  it("moves blocks that overflow to the next page", () => {
-    expect(paginate(blocks, [0, 100, 120, 900], [100, 120, 900, 1000], 950)).toEqual([[0, 1, 2], [3]]);
-  });
-
-  it("keeps a heading with the block that follows it", () => {
-    expect(paginate(blocks, [0, 880, 900, 1000], [880, 900, 980, 1100], 950)).toEqual([[0], [1, 2, 3]]);
-  });
-
-  it("never loops on a block taller than a page", () => {
-    expect(paginate([{}, {}], [0, 10], [10, 3000], 950)).toEqual([[0], [1]]);
-  });
-});
-
 describe("extraction helpers", () => {
   it("rebuilds PDF lines from positioned items instead of one long paragraph", () => {
     const lines = pdfItemsToLines([
@@ -99,6 +79,6 @@ describe("storage and checks", () => {
     const { resume } = parseResumeText(CLASSIC_RESUME);
     const checks = documentChecks(resume, { ...defaultSettings(), pagePreference: "one" }, 2);
     expect(checks.find((check) => check.id === "length")).toMatchObject({ ok: false });
-    expect(checks.find((check) => check.id === "font")).toMatchObject({ ok: true, detail: "Body text is 11 pt." });
+    expect(checks.find((check) => check.id === "font")).toMatchObject({ ok: true, detail: "Body text is 10.5 pt." });
   });
 });

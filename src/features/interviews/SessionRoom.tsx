@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, CameraOff, ChevronRight, Circle, Crosshair, Eye, EyeOff, Mic, MicOff, Pause, Play, Square, StopCircle } from "lucide-react";
+import { Camera, CameraOff, ChevronRight, Circle, Crosshair, Eye, EyeOff, Mic, MicOff, Pause, Play, RotateCcw, Square, StopCircle } from "lucide-react";
 import { startAudioMeter, type AudioMeter } from "./audioMeter";
 import type { FaceTracker } from "./faceTracker";
 import { saveRecording } from "./mediaStore";
@@ -7,8 +7,10 @@ import { MODE_LABELS, TYPE_LABELS, newId, type Answer, type Session } from "./mo
 import { calibrate, summarize, type Baseline, type PoseSample } from "./presentation";
 import type { Question } from "./questions";
 import { startTranscriber, type LiveTranscriber, type TranscriptionSupport } from "./speech";
+import { getSupportedMimeType } from "../../hooks/useMediaRecorder";
+import { transcribeAnswerAudio, type TranscriptionProgress } from "./transcription";
 
-type Phase = "idle" | "recording" | "paused" | "done";
+type Phase = "idle" | "recording" | "paused" | "transcribing" | "done";
 type Permission = "unknown" | "prompt" | "granted" | "denied";
 
 type Props = {
@@ -59,6 +61,9 @@ export default function SessionRoom({ session, questions, transcription, onSaveA
   const [segments, setSegments] = useState<Answer["segments"]>([]);
   const [interim, setInterim] = useState("");
   const [transcript, setTranscript] = useState("");
+  const [, setTranscriptSource] = useState<Answer["transcriptSource"]>("none");
+  const [sttProgress, setSttProgress] = useState<TranscriptionProgress | null>(null);
+  const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [sttError, setSttError] = useState("");
   const [sttActive, setSttActive] = useState(false);
@@ -81,6 +86,8 @@ export default function SessionRoom({ session, questions, transcription, onSaveA
   const videoRef = useRef<HTMLVideoElement>(null);
   const recorder = useRef<MediaRecorder | null>(null);
   const chunks = useRef<BlobPart[]>([]);
+  const lastBlobRef = useRef<Blob | null>(null);
+  const currentAnswerId = useRef<string>(newId());
   const meter = useRef<AudioMeter | null>(null);
   const transcriber = useRef<LiveTranscriber | null>(null);
   const trackerRef = useRef<FaceTracker | null>(null);
@@ -220,8 +227,15 @@ export default function SessionRoom({ session, questions, transcription, onSaveA
   };
 
   const startAnswer = async () => {
+    currentAnswerId.current = newId();
+    if (audioPreviewUrl) {
+      URL.revokeObjectURL(audioPreviewUrl);
+      setAudioPreviewUrl(null);
+    }
+    lastBlobRef.current = null;
     setError("");
     setSttError("");
+    setSttProgress(null);
     segmentsRef.current = [];
     setSegments([]);
     setInterim("");
@@ -240,12 +254,18 @@ export default function SessionRoom({ session, questions, transcription, onSaveA
         stream.getAudioTracks()[0]?.addEventListener("ended", () => {
           if (mounted.current && phaseRef.current === "recording") setError("Microphone access ended. Your answer so far was kept; stop the answer to save it.");
         });
-        if (config.consents.saveRecordings && typeof MediaRecorder !== "undefined") {
-          const tracks = [...stream.getAudioTracks(), ...(config.mode === "camera" && camStream.current ? camStream.current.getVideoTracks() : [])];
-          const instance = new MediaRecorder(new MediaStream(tracks));
-          instance.ondataavailable = (event) => event.data.size && chunks.current.push(event.data);
+
+        // Always capture in-memory audio so that speech-to-text and playback work reliably
+        if (typeof MediaRecorder !== "undefined") {
+          const isVideo = config.mode === "camera" && Boolean(camStream.current);
+          const tracks = [...stream.getAudioTracks(), ...(isVideo ? camStream.current!.getVideoTracks() : [])];
+          const supported = getSupportedMimeType(isVideo);
+          const instance = new MediaRecorder(new MediaStream(tracks), supported ? { mimeType: supported } : undefined);
+          instance.ondataavailable = (event) => {
+            if (event.data && event.data.size > 0) chunks.current.push(event.data);
+          };
           instance.onerror = () => mounted.current && setError("Recording was interrupted. Your notes and transcript are still here.");
-          instance.start(1000);
+          instance.start(250);
           recorder.current = instance;
           setRecording(true);
         }
@@ -286,8 +306,11 @@ export default function SessionRoom({ session, questions, transcription, onSaveA
     setSttActive(false);
     const audio = meter.current?.stop() ?? null;
     meter.current = null;
+
     let mediaId: string | undefined;
     let mediaKind: Answer["mediaKind"];
+    let recordedBlob: Blob | null = null;
+
     if (recorder.current && recorder.current.state !== "inactive") {
       const active = recorder.current;
       await new Promise<void>((resolve) => {
@@ -295,32 +318,67 @@ export default function SessionRoom({ session, questions, transcription, onSaveA
         active.stop();
       });
       if (chunks.current.length) {
-        const blob = new Blob(chunks.current, { type: active.mimeType || "audio/webm" });
+        const resolvedType = active.mimeType || "audio/webm";
+        recordedBlob = new Blob(chunks.current, { type: resolvedType });
+        lastBlobRef.current = recordedBlob;
+        const previewUrl = URL.createObjectURL(recordedBlob);
+        setAudioPreviewUrl(previewUrl);
+
         mediaId = newId();
         mediaKind = active.stream.getVideoTracks().length ? "video" : "audio";
-        try {
-          await saveRecording(mediaId, session.id, blob, config.consents.retentionDays);
-        } catch {
-          mediaId = undefined;
-          setError("The recording could not be saved in this browser. Your transcript and notes were kept.");
+        if (config.consents.saveRecordings) {
+          try {
+            await saveRecording(mediaId, session.id, recordedBlob, config.consents.retentionDays);
+          } catch {
+            mediaId = undefined;
+            setError("The recording could not be saved to browser storage. Your transcript and notes were kept.");
+          }
         }
       }
     }
     recorder.current = null;
     setRecording(false);
     stopMic();
-    const finalText = voice ? segmentsRef.current.map((segment) => segment.text).join(" ") : typed.trim();
+
+    let finalText = voice ? segmentsRef.current.map((segment) => segment.text).join(" ") : typed.trim();
+    let source: Answer["transcriptSource"] = !voice ? "typed" : finalText ? "live" : "none";
+
+    // If voice mode is active and we didn't get live transcript (or config is whisper), transcribe the recorded audio!
+    if (voice && recordedBlob && (!finalText || config.transcription !== "browser") && config.transcription !== "off") {
+      setPhase("transcribing");
+      phaseRef.current = "transcribing";
+      try {
+        const engine = config.transcription === "whisper-local" ? "whisper-local" : "whisper-browser";
+        const result = await transcribeAnswerAudio(recordedBlob, engine, {
+          onProgress: (p) => setSttProgress(p),
+        });
+        if (result.text) {
+          finalText = result.text;
+          segmentsRef.current = result.segments;
+          setSegments(result.segments);
+          source = "whisper";
+        } else if (durationSec > 1) {
+          setSttError("No clear speech was recognized in your recording. Check your microphone or speak clearly.");
+        }
+      } catch (sttErr: any) {
+        setSttError(sttErr?.message || "Transcription could not be completed on this recording. You can type or edit your transcript.");
+      }
+    }
+
     setTranscript(finalText);
+    setTranscriptSource(source);
     setInterim("");
     setPhase("done");
+    phaseRef.current = "done";
+
     const presentation = samples.current.length ? summarize(samples.current, baseline) : null;
     onSaveAnswer({
-      id: newId(),
+      id: currentAnswerId.current,
       questionId: question.id,
       question: question.text,
       text: finalText,
       segments: segmentsRef.current,
-      transcriptSource: !voice ? "typed" : segmentsRef.current.length ? "live" : "none",
+      transcriptSource: source,
       notes,
       durationSec,
       startedAt: new Date().toISOString(),
@@ -332,32 +390,79 @@ export default function SessionRoom({ session, questions, transcription, onSaveA
   };
 
   const saveTranscriptEdit = () => {
+    setTranscriptSource("manual");
     onSaveAnswer({
-      id: newId(),
+      id: currentAnswerId.current,
       questionId: question.id,
       question: question.text,
       text: transcript.trim(),
       segments: segmentsRef.current,
-      transcriptSource: !voice ? "typed" : transcript.trim() === segmentsRef.current.map((segment) => segment.text).join(" ") ? "live" : "manual",
+      transcriptSource: "manual",
       notes,
-      durationSec: Math.round(elapsed * 10) / 10,
+      durationSec: Math.round(answerSeconds() * 10) / 10 || 1,
       startedAt: new Date().toISOString(),
       audio: null,
       presentation: null,
     });
   };
 
+  const retryTranscription = async () => {
+    if (!lastBlobRef.current) return;
+    setPhase("transcribing");
+    phaseRef.current = "transcribing";
+    setSttError("");
+    try {
+      const engine = config.transcription === "whisper-local" ? "whisper-local" : "whisper-browser";
+      const result = await transcribeAnswerAudio(lastBlobRef.current, engine, {
+        onProgress: (p) => setSttProgress(p),
+      });
+      if (result.text) {
+        setTranscript(result.text);
+        setSegments(result.segments);
+        segmentsRef.current = result.segments;
+        setTranscriptSource("whisper");
+        onSaveAnswer({
+          id: currentAnswerId.current,
+          questionId: question.id,
+          question: question.text,
+          text: result.text,
+          segments: result.segments,
+          transcriptSource: "whisper",
+          notes,
+          durationSec: Math.round(result.durationSec * 10) / 10,
+          startedAt: new Date().toISOString(),
+          audio: null,
+          presentation: null,
+        });
+      } else {
+        setSttError("No speech detected in recorded audio.");
+      }
+    } catch (err: any) {
+      setSttError(err?.message || "Retry transcription failed.");
+    } finally {
+      setPhase("done");
+      phaseRef.current = "done";
+    }
+  };
+
   const next = () => {
+    if (audioPreviewUrl) {
+      URL.revokeObjectURL(audioPreviewUrl);
+      setAudioPreviewUrl(null);
+    }
+    lastBlobRef.current = null;
     setIndex(index + 1);
     setPhase("idle");
     setTyped("");
     setNotes("");
     setTranscript("");
+    setTranscriptSource("none");
     setSegments([]);
     segmentsRef.current = [];
     setElapsed(0);
     setError("");
     setSttError("");
+    setSttProgress(null);
   };
 
   const runCalibration = () => {
@@ -386,7 +491,7 @@ export default function SessionRoom({ session, questions, transcription, onSaveA
         <div className="iv-indicators" aria-live="polite">
           {voice ? <span className={`iv-chip ${micOn && !muted ? "on" : ""}`}>{micOn ? (muted ? "Mic muted" : "Mic on") : "Mic off"} · permission {micPermission === "unknown" ? "not checked" : micPermission}</span> : null}
           {config.mode === "camera" ? <span className={`iv-chip ${cameraOn ? "on" : ""}`}>{cameraOn ? "Camera on" : "Camera off"} · permission {cameraPermission === "unknown" ? "not checked" : cameraPermission}</span> : null}
-          {recording ? (
+          {recording && config.consents.saveRecordings ? (
             <span className="iv-chip iv-rec" role="status">
               <Circle size={10} fill="currentColor" aria-hidden="true" /> Recording · saved on this device
             </span>
@@ -437,17 +542,39 @@ export default function SessionRoom({ session, questions, transcription, onSaveA
           </div>
           {voice ? (
             <div className="iv-transcript">
-              <h3>{phase === "done" ? "Transcript (editable)" : "Live transcript"}</h3>
-              {transcriptionNote ? <p className="career-muted">{transcriptionNote}</p> : null}
+              <h3>{phase === "done" ? "Transcript (editable)" : phase === "transcribing" ? "Transcribing speech…" : "Live transcript"}</h3>
+              {phase === "transcribing" && (
+                <div className="iv-transcribing-card" role="status" aria-live="polite" style={{ padding: "12px 14px", borderRadius: 8, background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)", margin: "8px 0" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, color: "#2563eb" }}>
+                    <span className="inline-block w-3 h-3 rounded-full bg-blue-600 animate-ping" />
+                    <span>Processing spoken answer…</span>
+                  </div>
+                  <p style={{ margin: "4px 0 0", fontSize: 12, color: "inherit" }}>
+                    {sttProgress?.message || "Running on-device Whisper speech-to-text…"}
+                  </p>
+                </div>
+              )}
+              {transcriptionNote && phase !== "transcribing" ? <p className="career-muted">{transcriptionNote}</p> : null}
               {phase === "done" ? (
                 <>
+                  {audioPreviewUrl && (
+                    <div className="iv-playback-box" style={{ margin: "10px 0 12px", padding: 10, borderRadius: 8, background: "var(--career-soft)" }}>
+                      <span className="career-overline" style={{ display: "block", marginBottom: 4 }}>Review recorded answer</span>
+                      <audio controls src={audioPreviewUrl} style={{ width: "100%", height: 36 }} />
+                    </div>
+                  )}
                   <textarea aria-label="Transcript (editable)" rows={6} value={transcript} onChange={(event) => setTranscript(event.target.value)} placeholder="Type or paste what you said." />
-                  <div className="iv-row">
+                  <div className="iv-row" style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
                     <button type="button" className="career-secondary-button" onClick={saveTranscriptEdit}>Save transcript</button>
+                    {lastBlobRef.current && (
+                      <button type="button" className="career-secondary-button" onClick={() => void retryTranscription()}>
+                        <RotateCcw size={14} /> Retry transcription
+                      </button>
+                    )}
                     <button type="button" className="career-secondary-button" disabled={!transcript} onClick={() => void navigator.clipboard?.writeText(transcript).catch(() => undefined)}>Copy</button>
                   </div>
                 </>
-              ) : (
+              ) : phase !== "transcribing" ? (
                 <div className="iv-live" aria-live="polite">
                   {segments.map((segment) => (
                     <p key={`${segment.t}-${segment.text}`}>
@@ -457,12 +584,14 @@ export default function SessionRoom({ session, questions, transcription, onSaveA
                   {interim ? <p className="iv-interim">{interim}</p> : null}
                   {!segments.length && !interim ? <p className="career-muted">{live ? (sttActive ? "Listening for speech…" : "Not transcribing.") : "Your words will appear here."}</p> : null}
                 </div>
-              )}
+              ) : null}
               {sttError ? (
-                <p className="iv-warning" role="alert">
+                <p className="iv-warning" role="alert" style={{ marginTop: 8 }}>
                   {sttError}{" "}
                   {live && !sttActive ? (
                     <button type="button" className="rs-link-button" onClick={startLiveTranscription}>Retry live transcription</button>
+                  ) : lastBlobRef.current && phase === "done" ? (
+                    <button type="button" className="rs-link-button" onClick={() => void retryTranscription()}>Retry speech model</button>
                   ) : null}
                 </p>
               ) : null}
@@ -533,7 +662,12 @@ export default function SessionRoom({ session, questions, transcription, onSaveA
             Next question <ChevronRight size={16} />
           </button>
         ) : null}
-        <button type="button" className="career-danger-button" disabled={live} onClick={onEnd}>
+        {phase === "transcribing" ? (
+          <button type="button" className="iv-control" disabled>
+            Transcribing…
+          </button>
+        ) : null}
+        <button type="button" className="career-danger-button" disabled={live || phase === "transcribing"} onClick={onEnd}>
           <StopCircle size={16} /> End session
         </button>
       </div>

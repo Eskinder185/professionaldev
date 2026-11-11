@@ -28,18 +28,20 @@ export const TAXONOMY: Record<string, TaxonomyEntry[]> = {
   "Cloud Platforms": [
     ["AWS IAM", ["AWS Identity and Access Management", "AWS Identity & Access Management", "Amazon IAM"]],
     ["Amazon EC2", ["EC2", "AWS EC2"]], ["Amazon S3", ["S3", "AWS S3"]], ["AWS Lambda", ["Lambda"]], ["AWS CloudFormation", ["CloudFormation"]],
-    ["Amazon CloudWatch", ["CloudWatch"]], ["AWS", ["Amazon Web Services"]],
+    ["Amazon CloudWatch", ["CloudWatch"]], ["Amazon CloudFront", ["CloudFront"]], ["Amazon Bedrock", ["AWS Bedrock", "Bedrock"]], ["Amazon VPC", ["VPC", "AWS VPC"]], ["AWS", ["Amazon Web Services"]],
     ["Microsoft Entra ID", ["Azure Active Directory", "Azure AD", "Entra ID", "AAD"]], ["Azure", ["Microsoft Azure"]],
     ["Google Cloud", ["GCP", "Google Cloud Platform"]], ["Microsoft 365", ["Office 365", "O365", "M365"]], ["Google Workspace", ["G Suite"]],
   ],
   "Operating Systems": [
-    ["Windows Server"], ["Windows", ["Windows 10", "Windows 11", "Windows OS", "Microsoft Windows"]], ["Linux"], ["Ubuntu"],
-    ["Red Hat Enterprise Linux", ["RHEL", "Red Hat"]], ["CentOS"], ["macOS", ["Mac OS", "OS X"]], ["iOS"], ["Android"], ["Unix"],
+    ["Windows Server"], ["Windows", ["Windows 10", "Windows 11", "Windows OS", "Microsoft Windows"]], ["Linux"], ["Ubuntu", ["Ubuntu Server"]], ["Debian"],
+    ["Red Hat Enterprise Linux", ["RHEL", "Red Hat"]], ["CentOS"], ["macOS", ["Mac OS", "OS X"]], ["iOS"], ["Android"], ["Unix"], ["Proxmox VE", ["Proxmox"]], ["TrueNAS"],
   ],
   Networking: [
     ["TCP/IP", ["TCP", "TCP IP"]], ["DNS"], ["DHCP"], ["VLAN", ["VLANs"]], ["VPN", ["VPNs"]], ["LAN/WAN", ["LAN", "WAN"]], ["SD-WAN"],
     ["Routing and switching", ["routing", "switching", "routers", "switches"]], ["OSPF"], ["BGP"], ["Firewalls", ["firewall", "firewall configuration"]],
     ["Load balancing", ["load balancers"]], ["Wireless networking", ["Wi-Fi", "WiFi", "wireless"]], ["Cisco IOS", ["Cisco"]], ["Subnetting", ["subnets"]],
+    ["SSH"], ["OSI model", ["OSI Layers", "Layer 1", "Layer 2", "Layer 3", "Layer 4"]], ["Tailscale"],
+    ["Structured cabling", ["fiber/copper cabling", "fiber and copper cabling", "structured cabling", "cabling", "fiber optic", "Cat6"]],
   ],
   Security: [
     ["SIEM", ["security information and event management"]], ["Splunk"], ["Incident response", ["incident handling"]],
@@ -66,9 +68,11 @@ export const TAXONOMY: Record<string, TaxonomyEntry[]> = {
   ],
   "IT Support & Systems": [
     ["Active Directory", ["AD DS"]], ["Group Policy", ["GPO", "GPOs"]], ["ServiceNow"], ["Jira", ["JIRA"]], ["ITIL"], ["Help desk support", ["help desk", "helpdesk", "service desk"]],
-    ["Ticketing systems", ["ticketing system", "ticketing"]], ["Troubleshooting", ["troubleshoot", "diagnose"]], ["Hardware support", ["hardware troubleshooting", "PC hardware"]],
+    ["Ticketing systems", ["ticketing system", "ticketing"]], ["Troubleshooting", ["troubleshoot", "diagnose"]], ["Hardware support", ["hardware troubleshooting", "PC hardware", "component replacement", "memory/storage upgrades"]],
     ["Microsoft Intune", ["Intune"]], ["SCCM", ["MECM", "Configuration Manager"]], ["Jamf"], ["VMware", ["vSphere", "ESXi"]], ["Hyper-V"], ["Virtualization"],
     ["Remote support", ["remote desktop", "remote assistance"]], ["Imaging and deployment", ["imaging", "device provisioning"]], ["Backup and recovery", ["backups", "disaster recovery"]],
+    ["RAID"], ["Rack installation", ["rack and stack", "server racking", "equipment staging"]], ["Data center operations", ["data center hardware", "data center infrastructure", "DCIM"]],
+    ["Change management"], ["SLA", ["Service Level Agreements", "service level agreement"]], ["Incident escalation"],
   ],
   "Software Practices": [
     ["REST APIs", ["REST", "RESTful", "RESTful APIs", "APIs"]], ["GraphQL"], ["Microservices"], ["Unit testing", ["unit tests", "automated testing", "automated tests", "test automation"]],
@@ -76,11 +80,11 @@ export const TAXONOMY: Record<string, TaxonomyEntry[]> = {
     ["Object-oriented programming", ["OOP"]], ["Data structures and algorithms", ["data structures", "algorithms"]],
   ],
   Certifications: [
-    ["CompTIA A+", ["A+ certification", "A+"]], ["CompTIA Network+", ["Network+"]], ["CompTIA Security+", ["Security+", "Sec+"]], ["CompTIA CySA+", ["CySA+"]], ["CompTIA Linux+", ["Linux+"]],
+    ["CompTIA A+", ["A+ certification", "A+"]], ["CompTIA Network+", ["Network+"]], ["CompTIA Security+", ["Security+", "Sec+"]], ["CompTIA Server+", ["Server+"]], ["CompTIA CySA+", ["CySA+"]], ["CompTIA Linux+", ["Linux+"]],
     ["CCNA"], ["CCNP"], ["CISSP"], ["CISM"], ["CEH", ["Certified Ethical Hacker"]], ["GIAC certification", ["GSEC", "GCIH", "GIAC"]],
     ["AWS Certified Solutions Architect", ["AWS Solutions Architect"]], ["AWS Certified Cloud Practitioner", ["AWS Cloud Practitioner"]],
     ["Microsoft Azure Fundamentals", ["AZ-900"]], ["Microsoft Azure Administrator", ["AZ-104"]], ["PMP"], ["ITIL Foundation", ["ITIL v4 Foundation", "ITIL 4 Foundation"]],
-    ["Certified Kubernetes Administrator", ["CKA"]],
+    ["Certified Kubernetes Administrator", ["CKA"]], ["OSHA 10", ["OSHA 10-Hour", "OSHA 30"]], ["Six Sigma Yellow Belt", ["Six Sigma"]],
   ],
   "Compliance & Domain": [
     ["HIPAA"], ["PCI DSS", ["PCI", "PCI-DSS"]], ["GDPR"], ["SOX", ["Sarbanes-Oxley"]], ["FERPA"], ["FedRAMP"], ["SOC 2", ["SOC2"]],

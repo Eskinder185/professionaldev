@@ -1,5 +1,5 @@
 import { uid } from "../model/defaults";
-import type { Requirement, RequirementKind } from "../model/types";
+import type { JobMetadata, Requirement, RequirementKind } from "../model/types";
 import { TAXONOMY, WEAK_ALIASES, termRegex } from "./taxonomy";
 
 /**
@@ -12,12 +12,19 @@ import { TAXONOMY, WEAK_ALIASES, termRegex } from "./taxonomy";
  * 3. Match the curated taxonomy (longest phrase first; matched text is consumed).
  * 4. Detect education and years-of-experience requirements with patterns.
  * 5. Treat lines under a responsibilities heading as responsibilities.
- * 6. Flag unknown acronyms in requirement lines as uncertain "Other technical terms".
+ * 6. Flag unknown acronyms in requirement lines as uncertain "Other technical terms",
+ *    while filtering out locations, US state codes, salary units, company names, and
+ *    generic uppercase words so they are never misclassified as job qualifications.
  * 7. Merge duplicates by normalized term, keeping every original phrase and the
  *    strongest classification (required > preferred > responsibility > context).
  */
 
-export type ExtractionResult = { requirements: Requirement[]; hasHeadings: boolean; lineCount: number };
+export type ExtractionResult = {
+  requirements: Requirement[];
+  metadata: JobMetadata;
+  hasHeadings: boolean;
+  lineCount: number;
+};
 
 const KIND_RANK: Record<RequirementKind, number> = { required: 4, preferred: 3, responsibility: 2, context: 1 };
 
@@ -55,7 +62,94 @@ function buildMatchers(): Matcher[] {
 let cachedMatchers: Matcher[] | null = null;
 const matchers = () => (cachedMatchers ??= buildMatchers());
 
-const ACRONYM_STOP = new Set(["USA", "US", "EEO", "EOE", "LLC", "INC", "HR", "PTO", "FAQ", "CEO", "CTO", "CIO", "OK", "ID", "IT", "AM", "PM", "EST", "PST", "CST", "MST", "ET", "PT", "NA", "TBD", "ASAP", "FTE", "W2", "K12", "ADA", "DE&I", "DEI", "LGBTQ", "II", "III", "IV", "AI", "UI", "UX", "B2B", "B2C", "SAAS", "KPI", "KPIS", "ROI", "Q1", "Q2", "Q3", "Q4", "GPA", "BS", "BA", "MS", "MA", "MBA", "PHD", "GED", "OR", "AND", "THE", "CS", "STEM", "NYC", "SF", "LA", "DC", "NY", "TX", "CA", "WFH", "NOTE", "AWS"]);
+const STATE_CODES = [
+  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+  "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+  "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+  "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+  "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+  "DC", "PR", "ON", "BC", "AB", "QC",
+];
+
+const CITY_STATE_RE = new RegExp(
+  `\\b([A-Z][A-Za-z .'-]{1,28}),\\s*(${STATE_CODES.join("|")})\\b(?:\\s+\\d{5}(?:-\\d{4})?)?`,
+  "g",
+);
+
+const SALARY_RE =
+  /(?:\$\s?\d[\d,.]*(?:\s?[kKmM])?(?:\s*(?:-|–|to)\s*\$?\s?\d[\d,.]*(?:\s?[kKmM])?)?(?:\s*(?:\/|\bper\s+)\s*(?:yr|yrs|year|years|hr|hrs|hour|hours|mo|month|wk|week|annum))?|\b\d[\d,.]*\s*(?:USD|CAD|EUR|GBP)(?:\s*(?:\/|\bper\s+)\s*(?:yr|year|hr|hour|mo|month))?)/gi;
+
+const COMPANY_SUFFIX_RE =
+  /\b([A-Z][A-Za-z0-9& .'-]{1,40}\s+(?:LLC|Inc\.?|Corp\.?|Corporation|Ltd\.?|LLP|PLC|Company|Co\.?))\b/g;
+
+const ACRONYM_STOP = new Set([
+  ...STATE_CODES,
+  "USA", "US", "UK", "EU", "CANADA",
+  "EEO", "EOE", "LLC", "INC", "CORP", "LTD", "PLC", "LLP", "DBA",
+  "HR", "HRS", "YR", "YRS", "MO", "MOS", "WK", "WKS", "USD", "CAD", "EUR", "GBP",
+  "OTE", "RSU", "RSUS", "APR", "BASE", "PAY", "COMP", "BONUS", "LBS", "LB", "FT", "SQ", "MPH", "KWH", "MW", "GW",
+  "PTO", "VTO", "FAQ", "CEO", "CTO", "CIO", "CFO", "COO", "VP", "SVP", "EVP", "GM", "PM", "AM",
+  "OK", "ID", "IT", "EST", "PST", "CST", "MST", "ET", "PT", "CT", "MT", "UTC", "GMT",
+  "NA", "TBD", "TBA", "ASAP", "FTE", "W2", "1099", "C2C", "K12", "ADA", "FMLA", "COBRA", "HSA", "FSA", "NDA", "NDAS",
+  "DE&I", "DEI", "LGBTQ", "BIPOC", "ERG", "ERGS",
+  "II", "III", "IV", "VI", "VII", "VIII", "IX",
+  "AI", "UI", "UX", "B2B", "B2C", "SAAS", "KPI", "KPIS", "ROI", "OKR", "OKRS",
+  "Q1", "Q2", "Q3", "Q4", "H1", "H2", "FY", "YOY",
+  "GPA", "BS", "BA", "MS", "MA", "MBA", "PHD", "GED", "AS", "AAS", "BENG", "MENG",
+  "OR", "AND", "THE", "CS", "STEM", "WFH", "RTO", "NOTE", "AWS", "PPE",
+  // Major US/Global city & airport codes often used in data center / IT job postings
+  "ATL", "NYC", "SFO", "SF", "LAX", "ORD", "DFW", "SEA", "BOS", "DEN", "IAD", "DCA", "AUS", "PHX", "CLT", "RDU", "BWI", "MCO", "MIA", "IAH", "MSP", "DTW", "PHL", "LGA", "JFK", "EWR", "CMH", "PDX", "SLC",
+  // Common uppercase words in postings
+  "MUST", "HAVE", "NEED", "WORK", "TEAM", "TEAMS", "ROLE", "ROLES", "FULL", "PART", "TIME", "SHIFT", "SHIFTS",
+  "ABLE", "LIFT", "PASS", "DRUG", "TEST", "ONLY", "WITH", "FROM", "THIS", "THAT", "YOUR", "WILL", "HIGH", "LOW",
+  "PLUS", "REQUIRED", "PREFERRED", "MINIMUM", "BASIC", "ABOUT", "JOIN", "APPLY", "REMOTE", "HYBRID", "ONSITE",
+  "ALL", "ANY", "ARE", "NOT", "FOR", "YOU", "OUR", "WHO", "WHAT", "WHY", "HOW", "NEW", "NOW",
+  "DAY", "DAYS", "NIGHT", "WEEK", "WEEKS", "YEAR", "YEARS", "MONTH", "HOUR", "HOURS",
+  "JOB", "JOBS", "CAREER", "LEVEL", "TIER", "STEP", "SITE", "SITES", "CITY", "STATE", "AREA", "ZONE", "ROOM", "FLOOR", "HALL",
+  "EAST", "WEST", "NORTH", "SOUTH", "NON", "PRE", "POST", "PRO", "SUB", "TOP", "END",
+  "USE", "USED", "USING", "MAKE", "MADE", "KEEP", "HELP", "LEAD", "RUN", "SET", "GET", "PUT", "TAKE", "GIVE", "MEET",
+  "OPEN", "CLOSE", "NEXT", "BEST", "GOOD", "FAST", "SAFE", "SELF", "BOTH", "EACH", "MORE", "MOST", "LESS", "SOME", "SUCH",
+  "SAME", "VERY", "WELL", "ALSO", "BACK", "OVER", "INTO", "UPON", "PER", "VIA", "ETC", "YES", "NO", "ON", "IN", "AT", "TO", "BY", "OF", "AS", "IS", "BE", "DO", "GO", "SO", "UP", "IF",
+]);
+
+/** Extract non-qualification metadata (company, location, work mode, compensation, employment type). */
+export function extractJobMetadata(description: string): JobMetadata {
+  const metadata: JobMetadata = {};
+  const clean = description.replace(/\r\n?/g, "\n");
+
+  const labelCompany = clean.match(/(?:^|\n)\s*(?:company|employer|organization)\s*:\s*([^\n|•]{2,120})/i);
+  const suffixCompany = clean.match(/\b([A-Z][A-Za-z0-9& .'-]{1,45}\s+(?:LLC|Inc\.?|Corp\.?|Corporation|Ltd\.?))\b/);
+  const seekingCompany = clean.match(/(?:^|\n)\s*([A-Z][A-Za-z0-9& .'-]{1,45}?)\s+is\s+(?:seeking|hiring|looking\s+for)\b/);
+  const company = (labelCompany?.[1] || suffixCompany?.[1] || seekingCompany?.[1] || "").trim();
+  if (company && !/^(location|role|title|position|summary|about|we|our|the)\b/i.test(company)) {
+    metadata.company = company.replace(/[.,;]+$/, "");
+  }
+
+  const labelLoc = clean.match(/(?:^|\n)\s*location\s*:\s*([^\n|•]{2,120})/i);
+  const cityState = clean.match(new RegExp(`\\b([A-Z][A-Za-z .'-]{1,28},\\s*(?:${STATE_CODES.join("|")}))\\b(?:\\s+\\d{5}(?:-\\d{4})?)?`));
+  if (labelLoc?.[1]) metadata.location = labelLoc[1].trim().replace(/[.,;]+$/, "");
+  else if (cityState?.[1]) metadata.location = cityState[1].trim();
+
+  if (/\bhybrid\b/i.test(clean)) metadata.workMode = "Hybrid";
+  else if (/\b(?:fully\s+remote|100%\s+remote|work\s+from\s+home|remote(?:\s+role|\s+position|\s+work)?)\b/i.test(clean) && !/\bno\s+remote\b|\bnot\s+remote\b/i.test(clean)) metadata.workMode = "Remote";
+  else if (/\b(?:on[- ]site|onsite|in[- ]person|in[- ]office)\b/i.test(clean)) metadata.workMode = "On-site";
+
+  const salaryMatch = clean.match(SALARY_RE);
+  if (salaryMatch?.[0]) metadata.compensation = salaryMatch[0].trim();
+
+  if (/\bfull[- ]time\b/i.test(clean)) metadata.employmentType = "Full-time";
+  else if (/\bpart[- ]time\b/i.test(clean)) metadata.employmentType = "Part-time";
+  else if (/\bcontract(?:-to-hire|\s+role|\s+position)?\b/i.test(clean)) metadata.employmentType = "Contract";
+  else if (/\binternship|\bintern\b/i.test(clean)) metadata.employmentType = "Internship";
+
+  return metadata;
+}
+
+/** A line that is mostly capital letters ("NOW HIRING", a banner) says nothing about acronyms. */
+const isShouting = (line: string) => {
+  const letters = line.replace(/[^A-Za-z]/g, "");
+  return letters.length >= 8 && letters.replace(/[^A-Z]/g, "").length / letters.length > 0.6;
+};
 
 const snippetOf = (line: string) => {
   const clean = line.replace(BULLET, "").replace(/\s+/g, " ").trim();
@@ -65,6 +159,20 @@ const snippetOf = (line: string) => {
 const sentenceCase = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
 export function extractRequirements(description: string): ExtractionResult {
+  const metadata = extractJobMetadata(description);
+  const companyTokens = new Set(
+    (metadata.company ?? "")
+      .toUpperCase()
+      .split(/[^A-Z0-9]+/)
+      .filter((t) => t.length >= 2),
+  );
+  const locationTokens = new Set(
+    (metadata.location ?? "")
+      .toUpperCase()
+      .split(/[^A-Z0-9]+/)
+      .filter((t) => t.length >= 2),
+  );
+
   // Classify sentence by sentence so "must have X. Y is a plus." gets two different kinds.
   const lines = description
     .replace(/\r\n?/g, "\n")
@@ -79,13 +187,16 @@ export function extractRequirements(description: string): ExtractionResult {
     const existing = found.get(key);
     if (existing) {
       if (!existing.phrases.includes(phrase)) existing.phrases.push(phrase);
-      if (snippet && !existing.snippets.includes(snippet) && existing.snippets.length < 3) existing.snippets.push(snippet);
+      if (snippet && !existing.snippets.includes(snippet) && existing.snippets.length < 3) {
+        existing.snippets.push(snippet);
+        existing.snippetKinds?.push(kind);
+      }
       if (KIND_RANK[kind] > KIND_RANK[existing.kind]) existing.kind = kind;
       existing.selected = existing.kind !== "context";
       existing.uncertain = existing.uncertain && uncertain;
       return;
     }
-    found.set(key, { id: uid(), term, phrases: [phrase], snippets: snippet ? [snippet] : [], category, kind, selected: kind !== "context", possession: "unanswered", origin: "detected", uncertain: uncertain || undefined });
+    found.set(key, { id: uid(), term, phrases: [phrase], snippets: snippet ? [snippet] : [], snippetKinds: snippet ? [kind] : [], category, kind, selected: kind !== "context", possession: "unanswered", origin: "detected", uncertain: uncertain || undefined });
   };
 
   let section: RequirementKind = hasHeadings ? "context" : "required";
@@ -94,6 +205,10 @@ export function extractRequirements(description: string): ExtractionResult {
     const heading = headingKind(raw);
     if (heading) {
       section = heading;
+      continue;
+    }
+    // Skip pure metadata lines (Location: ..., Salary: ..., Pay: ..., Company: ...)
+    if (/^\s*(?:location|salary|pay(?:\s+range)?|compensation|company|employer|job\s+type|work\s+location|schedule)\s*:/i.test(raw)) {
       continue;
     }
     let kind: RequirementKind = section;
@@ -137,17 +252,30 @@ export function extractRequirements(description: string): ExtractionResult {
     }
 
     // Unknown acronyms in requirement lines are surfaced, flagged as uncertain.
-    if (kind === "required" || kind === "preferred") {
-      for (const match of masked.matchAll(/(?<![A-Za-z0-9])([A-Z][A-Z0-9]{1,6}(?:\/[A-Z0-9]{2,6})?)(?![A-Za-z0-9])/g)) {
+    // Strip locations, salary strings, and company names first so they are never treated as skills.
+    if ((kind === "required" || kind === "preferred") && !isShouting(masked)) {
+      const cleanedForAcronyms = masked
+        .replace(CITY_STATE_RE, " ")
+        .replace(SALARY_RE, " ")
+        .replace(COMPANY_SUFFIX_RE, " ");
+      for (const match of cleanedForAcronyms.matchAll(/(?<![A-Za-z0-9])([A-Z][A-Z0-9]{1,6}(?:\/[A-Z0-9]{2,6})?)(?![A-Za-z0-9])/g)) {
         const token = match[1];
-        if (ACRONYM_STOP.has(token.toUpperCase()) || /^\d/.test(token)) continue;
+        const upper = token.toUpperCase();
+        if (
+          ACRONYM_STOP.has(upper) ||
+          companyTokens.has(upper) ||
+          locationTokens.has(upper) ||
+          /^\d/.test(token)
+        ) {
+          continue;
+        }
         add(token, "Other technical terms", kind, token, raw, true);
       }
     }
   }
 
   const requirements = [...found.values()];
-  return { requirements, hasHeadings, lineCount: lines.filter((line) => line.trim()).length };
+  return { requirements, metadata, hasHeadings, lineCount: lines.filter((line) => line.trim()).length };
 }
 
 /** Categories in a stable, readable order: as first seen, Responsibilities and uncertain terms last. */

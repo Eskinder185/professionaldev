@@ -7,7 +7,7 @@ export const load = <T>(k: string, f: T): T => {
   }
 };
 
-export const save = (k: string, v: any) => {
+export const save = (k: string, v: unknown) => {
   localStorage.setItem(k, JSON.stringify(v));
 };
 

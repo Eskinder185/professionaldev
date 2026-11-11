@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Download, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, Download, Sparkles, Trash2 } from "lucide-react";
+import { useAIConnection } from "../ai/AIConnectionProvider";
+import { buildInterviewCoachPrompt, validateAIInterviewFeedback, type ValidatedInterviewFeedback } from "../ai/structured";
 import { extractRequirements } from "../resume/job/extractRequirements";
 import { contentFeedback, speechFeedback, speechMetrics, type FeedbackItem } from "./analysis";
 import { deleteRecording, deleteSessionRecordings, loadRecording } from "./mediaStore";
 import { MODE_LABELS, TYPE_LABELS, type Answer, type Session } from "./model";
 import { presentationObservations } from "./presentation";
+import { transcribeAnswerAudio } from "./transcription";
 
 type Props = { session: Session; onChange: (session: Session) => void; onDelete: () => void; onBack: () => void };
 
@@ -67,6 +71,109 @@ function Replay({ answer, onDeleted }: { answer: Answer; onDeleted: () => void }
       >
         <Trash2 size={14} /> Delete recording
       </button>
+    </div>
+  );
+}
+
+function TranscribeSavedButton({
+  answer,
+  onTranscribed,
+}: {
+  answer: Answer;
+  onTranscribed: (text: string, segments: Answer["segments"]) => void;
+}) {
+  const [transcribing, setTranscribing] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  if (!answer.mediaId) return null;
+
+  const run = async () => {
+    setTranscribing(true);
+    setErr(null);
+    try {
+      const blob = await loadRecording(answer.mediaId!);
+      if (!blob) throw new Error("Audio recording is not available in local storage.");
+      const res = await transcribeAnswerAudio(blob, "whisper-browser");
+      if (res.text) {
+        onTranscribed(res.text, res.segments);
+      } else {
+        setErr("No clear speech detected in recording.");
+      }
+    } catch (e: any) {
+      setErr(e?.message || "Transcription failed.");
+    } finally {
+      setTranscribing(false);
+    }
+  };
+
+  return (
+    <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <button
+        type="button"
+        className="career-secondary-button"
+        disabled={transcribing}
+        onClick={() => void run()}
+      >
+        <Sparkles size={14} /> {transcribing ? "Transcribing with Whisper…" : "Transcribe recorded audio with Whisper"}
+      </button>
+      {err && <span className="career-muted" style={{ color: "#ef4444", fontSize: 12 }}>{err}</span>}
+    </div>
+  );
+}
+
+function AIInterviewReview({ answer, jobTitle }: { answer: Answer; jobTitle?: string }) {
+  const { connected, state, chatForTask } = useAIConnection();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<ValidatedInterviewFeedback | null>(null);
+
+  const runAnalysis = async () => {
+    if (!connected || !answer.text.trim()) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await chatForTask("interview_analysis", buildInterviewCoachPrompt(answer.question, answer.text, jobTitle));
+      setFeedback(validateAIInterviewFeedback(res.text));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not analyze transcript with AI.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="iv-ai-coach" style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(128,128,128,0.2)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+        <strong>AI Interview Coach (Transcript only — webcam video is never sent)</strong>
+        {connected ? (
+          <button
+            type="button"
+            className="career-secondary-button"
+            disabled={busy || !answer.text.trim()}
+            onClick={() => void runAnalysis()}
+          >
+            <Sparkles size={14} /> {busy ? "Analyzing transcript…" : `Analyze transcript with ${state.taskModels.interview_analysis || state.model}`}
+          </button>
+        ) : (
+          <span className="career-muted">
+            AI disconnected · <Link to="/settings">Connect in Settings → AI Connections</Link>
+          </span>
+        )}
+      </div>
+      {error ? <p className="rs-notice" role="alert">{error}</p> : null}
+      {feedback ? (
+        <div className="iv-ai-feedback" style={{ marginTop: 8 }}>
+          <p><strong>Overall:</strong> {feedback.overallSummary}</p>
+          <ul>
+            <li><strong>Situation:</strong> {feedback.starEvaluation.situation}</li>
+            <li><strong>Task:</strong> {feedback.starEvaluation.task}</li>
+            <li><strong>Action:</strong> {feedback.starEvaluation.action}</li>
+            <li><strong>Result:</strong> {feedback.starEvaluation.result}</li>
+            <li><strong>Technical accuracy:</strong> {feedback.technicalAccuracy}</li>
+            <li><strong>Job alignment:</strong> {feedback.jobAlignment}</li>
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -144,8 +251,13 @@ export default function SessionReport({ session, onChange, onDelete, onBack }: P
               Q{index + 1}. {answer.question}
             </h3>
             <p className="career-muted">
-              {format(answer.durationSec)} · {answer.transcriptSource === "typed" ? "typed answer" : answer.transcriptSource === "live" ? "live transcript" : answer.transcriptSource === "manual" ? "transcript edited by you" : "no transcript"}
+              {format(answer.durationSec)} · {answer.transcriptSource === "typed" ? "typed answer" : answer.transcriptSource === "live" ? "live transcript" : answer.transcriptSource === "whisper" ? "on-device Whisper transcript" : answer.transcriptSource === "manual" ? "transcript edited by you" : "no transcript"}
             </p>
+            {answer.durationSec > 0 && answer.transcriptSource !== "typed" && !answer.text.trim() ? (
+              <div className="iv-warning" role="note" style={{ margin: "6px 0 10px", padding: "8px 12px", borderRadius: 6, fontSize: 13, background: "rgba(234,179,8,0.12)", border: "1px solid rgba(234,179,8,0.3)" }}>
+                Audio was recorded ({format(answer.durationSec)}), but no spoken words were transcribed. You can replay the recording below, transcribe with Whisper, or type your answer to receive STAR and content feedback.
+              </div>
+            ) : null}
             <div className="iv-answer-grid">
               <section>
                 <h4>Answer review</h4>
@@ -189,6 +301,12 @@ export default function SessionReport({ session, onChange, onDelete, onBack }: P
                 </ol>
               ) : null}
               {answer.notes ? <p className="iv-notes">Notes: {answer.notes}</p> : null}
+              <TranscribeSavedButton
+                answer={answer}
+                onTranscribed={(text, segments) =>
+                  updateAnswer(answer.id, { text, segments, transcriptSource: "whisper" })
+                }
+              />
               <button type="button" className="career-danger-button" disabled={!answer.text && !answer.segments.length} onClick={() => updateAnswer(answer.id, { text: "", segments: [], transcriptSource: answer.transcriptSource === "typed" ? "typed" : "none" })}>
                 <Trash2 size={14} /> Delete transcript
               </button>
@@ -199,6 +317,7 @@ export default function SessionReport({ session, onChange, onDelete, onBack }: P
                 <Replay answer={answer} onDeleted={() => updateAnswer(answer.id, { mediaId: undefined, mediaKind: undefined })} />
               </details>
             ) : null}
+            <AIInterviewReview answer={answer} jobTitle={config.jobTitle} />
           </article>
         ))
       ) : (

@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import { ArrowRight, BookOpen, BriefcaseBusiness, CheckCircle2, Compass, FileText, Search, Target } from "lucide-react";
 import { getLocal, setLocal } from "../hooks/useLocal";
 import { lessons } from "../features/learning/AcademyPage";
-import type { Job } from "../features/jobs/JobsPage";
+import { loadJobStore } from "../features/jobs/store";
 import FocusTasks from "../features/dashboard/FocusTasks";
+import HomeAIPanel from "../features/ai/HomeAIPanel";
 
 type Application = { status?: string; company?: string; role?: string };
 type Skill = { skill?: string };
@@ -16,7 +17,7 @@ export default function Dashboard() {
   const [editingGoal, setEditingGoal] = useState(false);
   const applications = getLocal<Application[]>("appTracker:items", []);
   const skills = getLocal<Skill[]>("pd:resources:skills:list", []);
-  const savedJobs = getLocal<Job[]>("pd:careeros:saved-jobs", []);
+  const savedJobs = loadJobStore().saved;
   const completed = getLocal<Record<string, { completed?: boolean }>>("pd:careeros:learning", {});
   const doneCount = lessons.filter((lesson) => completed[lesson.id]?.completed).length;
   const nextStep = lessons.find((lesson) => !completed[lesson.id]?.completed);
@@ -30,9 +31,10 @@ export default function Dashboard() {
   return <div className="career-dashboard">
     <div className="career-page-eyebrow"><Compass size={15} /> YOUR CAREER COMMAND CENTER</div>
     <section className="career-hero"><div className="career-hero-content"><span className="career-overline">WELCOME TO CAREEROS</span><h1>Your career, moving forward.</h1><p>Discover opportunities. Build skills. Create your future.</p><div className="career-hero-goal"><Target size={18} /><span>Target career</span>{editingGoal ? <input aria-label="Target career" autoFocus value={goal} maxLength={80} placeholder="e.g. Software Engineer" onChange={(event) => setGoal(event.target.value)} onBlur={() => { setLocal("pd:careeros:goal", goal.trim()); setEditingGoal(false); }} onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }} /> : <button type="button" onClick={() => setEditingGoal(true)}>{goal || "Choose a career goal"}</button>}</div></div><div className="career-hero-art" aria-hidden="true"><div className="career-art-orbit"><span className="career-art-node career-art-node-one"><Search size={18} /></span><span className="career-art-node career-art-node-two"><BookOpen size={18} /></span><span className="career-art-node career-art-node-three"><BriefcaseBusiness size={18} /></span><div className="career-art-center"><Compass size={30} /><span>YOUR PATH</span></div></div></div></section>
+    <HomeAIPanel />
     <div className="career-section-heading"><div><span className="career-overline">AT A GLANCE</span><h2>Your workspace</h2></div><span>Based on records stored in this browser</span></div>
     <div className="career-metrics">
-      <Metric label="Saved jobs" value={savedJobs.length} detail="Postings you added" icon={BriefcaseBusiness} to="/jobs" />
+      <Metric label="Saved jobs" value={savedJobs.length} detail="Jobs you saved" icon={BriefcaseBusiness} to="/jobs" />
       <Metric label="Applications submitted" value={appliedCount} detail="Includes later pipeline stages" icon={CheckCircle2} to="/applications" />
       <Metric label="Interview stage" value={count("Interview")} detail="Current application statuses" icon={BriefcaseBusiness} to="/applications" />
       <Metric label="Lessons completed" value={doneCount} detail={path ? `Of ${lessons.length} Academy lessons` : "Explore lessons"} icon={BookOpen} to="/academy" />

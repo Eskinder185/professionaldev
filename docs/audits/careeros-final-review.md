@@ -1,14 +1,12 @@
 # CareerOS final review — 2026-11-09
 
-> Historical audit of the full uncommitted worktree. The selective CareerOS commit excludes the separate auth and Spring Boot roadmap/API changes; see the commit manifest for exact candidate verification.
-
 ## Outcome
 
 The existing local-first CareerOS and legacy tools were preserved. Fifteen confirmed defects were addressed: 5 high, 9 medium, and 1 low. The strongest changes protect browser data export/import, prevent accidental job deletion, complete the user-added job edit flow, make the mobile job layout usable, clarify recording state, and restore reliable dialog keyboard behavior. No live job feed, generative AI, cloud sync, or DOCX export is claimed.
 
 ## Before and after by primary screen
 
-Before/after screenshots were captured at 390px and 1440px in light and dark mode. For each route, open `audit/baseline/<theme>/<width>-<route>.png` and `audit/final/<theme>/<width>-<route>.png` under `<local-audit-root>`. Contact sheets `audit/baseline-light-390-sheet.png` and `audit/final-light-390-sheet.png` summarize the mobile comparison. The last source edits after capture affected recording cleanup and form reset behavior, not default-screen layout.
+Before/after screenshots were captured at 390px and 1440px in light and dark mode. For each route, open `audit/baseline/<theme>/<width>-<route>.png` and `audit/final/<theme>/<width>-<route>.png` under `C:\Users\eskew\.codex\visualizations\2026\11\09\01a1c233-070f-7b80-95fa-714b3d1d8c30`. Contact sheets `audit/baseline-light-390-sheet.png` and `audit/final-light-390-sheet.png` summarize the mobile comparison. The last source edits after capture affected recording cleanup and form reset behavior, not default-screen layout.
 
 | Route / screen | Confirmed visual change | Functional verification | Limit |
 | --- | --- | --- | --- |
@@ -33,7 +31,7 @@ Keyboard improvements cover form focus, Escape and restoration, upload focus, qu
 ## Git safety and proposed commit
 
 - Branch `main`; baseline/current HEAD `5b67a16fbd804e6860904ab94ae40425249b0e94`. The staged index is empty. `git diff --check` found no whitespace errors; Git printed only existing LF/CRLF conversion notices.
-- Verified recovery archive and manifest: `<local-audit-root>\recovery\professionaldev-baseline-20261109T220822Z.{zip,json}`. A separate restore rehearsal passed.
+- Verified recovery archive and manifest: `C:\Users\eskew\.codex\visualizations\2026\11\09\01a1c233-070f-7b80-95fa-714b3d1d8c30\recovery\professionaldev-baseline-20261109T220822Z.{zip,json}`. A separate restore rehearsal passed.
 - Current-pass code files: `src/main.tsx`, `src/components/layout/WorkspaceShell.tsx`, `src/features/jobs/JobsPage.tsx`, `src/features/applications/ApplicationsPage.tsx`, `src/features/interviews/InterviewStudioPage.tsx`, `src/features/resume/ResumeStudioPage.tsx`, `src/pages/Settings.tsx`, `src/pages/Resources/Trackers.tsx`, `tests/e2e/careeros.spec.ts`, plus new `src/hooks/useModalFocus.ts` and `src/styles/careeros-polish.css`. The exact delta from the recovery snapshot is in external `audit/careeros-polish-only.patch`.
 - New audit reports under `docs/audits/` are current-pass work. The pre-existing CareerOS shell/features/tests, package changes, legacy pages, marketing pages, backend `apps/api`, and architecture docs were present before this pass; they remain unstaged. Their ownership and commit grouping are not inferable from Git status alone.
 - Proposed for a **reviewed CareerOS commit**: the eight audit reports, the eleven code/test paths above, and the necessary baseline CareerOS implementation files referenced by them, after hunk-by-hunk comparison with the recovery manifest. The tracked `src/main.tsx` and `src/pages/Settings.tsx` already contained earlier changes; staging whole files would include those changes. An isolated commit of only this pass is not safe from the current dirty index without constructing and reviewing a separate index/worktree.

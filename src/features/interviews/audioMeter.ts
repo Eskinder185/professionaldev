@@ -26,6 +26,9 @@ export function startAudioMeter(stream: MediaStream, isPaused: () => boolean): A
   const Context = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Context) return null;
   const context = new Context();
+  if (context.state === "suspended") {
+    void context.resume().catch(() => undefined);
+  }
   const source = context.createMediaStreamSource(stream);
   const analyser = context.createAnalyser();
   analyser.fftSize = 1024;

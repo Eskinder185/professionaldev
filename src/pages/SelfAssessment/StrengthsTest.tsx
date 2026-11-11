@@ -5,6 +5,7 @@ import { STRENGTHS_QUESTIONS, Likert, Q } from "../../data/self/strengthsQuestio
 import { save, load } from "../../utils/storage";
 
 type Scores = { focus: number; communication: number; ownership: number; pace: number };
+const TRAITS: (keyof Scores)[] = ["focus", "communication", "ownership", "pace"];
 
 export default function StrengthsTest() {
   const [step, setStep] = useState(1);
@@ -14,11 +15,9 @@ export default function StrengthsTest() {
   const pages = Math.ceil(STRENGTHS_QUESTIONS.length / 5);
   const [page, setPage] = useState(0);
 
-  const traits: (keyof Scores)[] = ["focus", "communication", "ownership", "pace"];
-
   const computeResults = (): Scores => {
     const sums: Record<string, { total: number; count: number }> = {};
-    for (const t of traits) sums[t] = { total: 0, count: 0 };
+    for (const t of TRAITS) sums[t] = { total: 0, count: 0 };
     for (const q of STRENGTHS_QUESTIONS) {
       const v = answers[q.id];
       if (!v) continue;
@@ -27,7 +26,7 @@ export default function StrengthsTest() {
       sums[q.trait].count += 1;
     }
     const out: any = {};
-    for (const t of traits) {
+    for (const t of TRAITS) {
       const { total, count } = sums[t];
       out[t] = count ? Math.round((total / count) * 10) / 10 : 0;
     }
@@ -35,21 +34,20 @@ export default function StrengthsTest() {
   };
 
   const results = useMemo(computeResults, [answers]);
-  const chartData = traits.map((t) => ({ trait: t, score: results[t] }));
+  const chartData = TRAITS.map((t) => ({ trait: t, score: results[t] }));
 
-  const topStrengths = [...traits].sort((a, b) => results[b] - results[a]).slice(0, 3);
-  const blindSpots = [...traits].sort((a, b) => results[a] - results[b]).slice(0, 3);
+  const topStrengths = [...TRAITS].sort((a, b) => results[b] - results[a]).slice(0, 3);
+  const blindSpots = [...TRAITS].sort((a, b) => results[a] - results[b]).slice(0, 3);
 
   const exportPDF = async () => {
     if (!reportRef.current) return;
-    const jspdfName = 'jspdf'; const html2canvasName = 'html2canvas';
-    const [{ jsPDF }, html2canvas] = await Promise.all([
-      import(/* @vite-ignore */ (jspdfName as any)),
-      import(/* @vite-ignore */ (html2canvasName as any)),
+    const [{ jsPDF }, { default: html2canvas }] = await Promise.all([
+      import("jspdf"),
+      import("html2canvas"),
     ]);
-    const canvas = await (html2canvas as any).default(reportRef.current, { scale: 2, backgroundColor: '#ffffff' });
+    const canvas = await html2canvas(reportRef.current, { scale: 2, backgroundColor: '#ffffff' });
     const img = canvas.toDataURL('image/png');
-    const pdf = new (jsPDF as any)({ unit: 'pt', format: 'a4' });
+    const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
     const pageWidth = pdf.internal.pageSize.getWidth();
     const ratio = pageWidth / canvas.width; const w = pageWidth; const h = canvas.height * ratio;
     pdf.addImage(img, 'PNG', 0, 0, w, h);

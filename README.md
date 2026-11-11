@@ -1,67 +1,136 @@
-Roadmap to Role
+# Roadmap to Role
 
-Purpose
-This project is a simple all in one workspace for career growth. It brings your self assessments, resume and LinkedIn prep, interview practice, and productivity tools into one place. The goal is to make it easy for a student or early career professional to plan, take action, and track progress in one site.
+## CareerOS workspace
 
-Who it is for
-Students and career changers who want a clear path to improve their portfolio, resume, LinkedIn, and interview skills without hunting across many tools.
+The local CareerOS workspace starts at `/professionaldev/dashboard`. It adds a responsive shell, record-based dashboard, personal job library, application board, short lesson academy, résumé and interview studios, analytics, and a rule based career coach. The original homepage and tool routes are preserved. See [the CareerOS implementation and limits](docs/careeros.md) for data handling, design tokens, and service boundaries.
 
-What you can do here
-Self Assessment
-Explore your strengths, values, interests, and keep a short journal to reflect on what you learn.
+Roadmap to Role is a browser-based career-development workspace for students and career changers. It combines self-assessments, resume and LinkedIn preparation, interview practice, application tracking, and learning resources.
 
-Career Tools
-Improve your resume and LinkedIn
-Practice STAR stories for interviews
-Draft an elevator pitch
-Organize portfolio and GitHub updates
+## Repository identity
 
-Resources
-Follow simple roadmaps
-Use trackers for goals and applications
-Learn basic productivity habits you can actually keep
+This repository is `Eskinder185/professionaldev` and builds the **Roadmap to Role** React application published at <https://eskinder185.github.io/professionaldev/>. The separate site at <https://eskinder.dev/> currently identifies itself as a portfolio and is not assumed to be deployed from this repository.
 
-How the app is organized
-Home gives a quick overview and links to each section
-Self Assessment includes Strengths, Values, Interests, and Journal pages
-Career Tools includes Resume and LinkedIn, STAR, Elevator Pitch, and Portfolio and GitHub pages
-Resources includes Roadmaps, Trackers, and Productivity pages
-About and Contact explain the project and how to reach you
+See `docs/architecture/repository-identity.md` for the supporting evidence and remaining GitHub Pages uncertainty.
 
-What makes it helpful
-One place to plan and act
-Short checklists and pages that reduce overwhelm
-Mobile friendly and fast
-Designed to be extended with new pages later
+## Technology
 
-How to run it locally
-Install Node version 18 or newer
-Open the project folder in a terminal
-Run npm install
-Run npm run dev and open the local link shown in the terminal
-Run npm run build to create the production files
+- React 18 and TypeScript
+- Vite 7
+- React Router 6
+- Tailwind CSS 3
+- Vitest for unit tests
+- Playwright for browser tests
+- ESLint for static analysis
+- GitHub Actions and GitHub Pages
 
-How to deploy on GitHub Pages
-Option one use gh pages
-Make sure package.json has predeploy and deploy scripts that publish the dist folder
-Run npm run deploy
-In GitHub settings set Pages to the gh pages branch
+## Local development
 
-Option two use a docs folder
-Run npm run build
-Copy the files from the dist folder into a docs folder at the project root
-Commit and push
-In GitHub settings set Pages to build from main and the docs folder
+Use Node 22.12 or newer and npm. npm is the authoritative package manager for this repository.
 
-Common issues and fixes
-If refresh on a page shows 404 add a copy of index.html named 404.html in the deployed output
-If build says it cannot find index.css check the import path in src main and confirm the file exists
-If push is rejected run git pull origin main resolve any changes then push again
+```powershell
+npm.cmd ci
+npm.cmd run dev
+```
 
-Tech used
-React and Vite for the app
-React Router for pages
-Tailwind CSS for layout and styles
+Vite prints the local address. The application is configured with the `/professionaldev/` base path.
 
-Live site
-https://eskinder185.github.io/professionaldev/
+## Quality checks
+
+```powershell
+npm.cmd run lint
+npm.cmd run typecheck
+npm.cmd run test
+npm.cmd run build
+```
+
+Run all four checks in sequence with:
+
+```powershell
+npm.cmd run check
+```
+
+For browser tests, install Chromium once and then run Playwright:
+
+```powershell
+npx.cmd playwright install chromium
+npm.cmd run test:e2e
+```
+
+## Spring Boot API
+
+The additive Java backend lives in `apps/api`. It uses Java 17, Spring Boot 4.1.1, PostgreSQL 17, Flyway, JPA/Hibernate, and the Maven Wrapper. Start its local database first; the Compose service binds only to `127.0.0.1` and stores data in a named volume:
+
+```powershell
+Set-Location apps/api
+docker compose up -d
+docker compose ps
+```
+
+If port `5432` is already occupied, choose another localhost port and use the same
+value when starting both Compose and Spring Boot:
+
+```powershell
+$env:DB_PORT = '55432'
+docker compose up -d --wait
+# Keep DB_PORT set in the API terminal before running Maven.
+```
+
+The checked-in defaults are development-only. Copy `.env.example` to `.env` to override them locally. Never reuse those sample credentials outside local development.
+
+The API requires two local-only authentication passwords. Set them in the API terminal; do not add them to browser source or commit a populated environment file:
+
+```powershell
+$env:LOCAL_LEARNER_PASSWORD = 'choose-a-local-password'
+$env:LOCAL_REVIEWER_PASSWORD = 'choose-a-different-local-password'
+```
+
+On this workstation, select the installed Java 17 JDK before running the API because the system default is still Java 11:
+
+```powershell
+$env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-17.0.16.8-hotspot'
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+Set-Location apps/api
+.\mvnw.cmd test
+.\mvnw.cmd spring-boot:run
+```
+
+The roadmap API is available at `http://localhost:8080/api/v1/roadmaps`, and its health endpoint is `http://localhost:8080/actuator/health`.
+
+Authenticated local progress endpoints are `GET /api/v1/progress` and `PUT /api/v1/progress/roadmaps/{roadmapId}/stages/{stageSequence}`. They use HTTP Basic locally with usernames `learner` and `reviewer`; production identity integration is intentionally deferred.
+
+See `docs/architecture/database-design.md` for the current persistence design and `docs/learning/postgresql-jpa-flyway.md` for the database learning guide.
+
+### Running the integrated roadmap locally
+
+Start the API in one PowerShell terminal using the commands above. In a second terminal, start Vite:
+
+```powershell
+Set-Location C:\Users\eskew\github\professionaldev
+npm.cmd run dev
+```
+
+Vite proxies browser requests from `/api` to `http://127.0.0.1:8080`. If the backend must use another port, give both processes the same port without putting it in browser code:
+
+```powershell
+# API terminal
+$env:PORT = '18080'
+.\mvnw.cmd spring-boot:run
+
+# Frontend terminal
+$env:ROADMAP_API_PORT = '18080'
+npm.cmd run dev
+```
+
+The integrated view is `/professionaldev/resources/roadmaps`. API catalog data is read-only and never writes to localStorage.
+
+## Deployment
+
+`.github/workflows/deploy.yml` validates pull requests and pushes with npm, Node 22, ESLint, TypeScript, Vitest, Playwright, and a production build. Pull requests do not deploy. The existing GitHub Pages deployment remains restricted to non-pull-request workflow runs.
+
+Do not use `npm run deploy` unless branch-based `gh-pages` deployment is intentionally selected instead of the configured Pages Actions workflow.
+
+## Data and privacy
+
+User drafts and progress are stored in browser localStorage and IndexedDB. Resume parsing occurs in the browser. Storage migrations are versioned, preserve data by default, and create a recovery snapshot before any historically destructive key family is considered.
+
+See `docs/architecture/browser-storage.md` for the key inventory and migration rules.

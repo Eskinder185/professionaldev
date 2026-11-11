@@ -151,6 +151,11 @@ function parseContact(header: string[], issues: ParseIssue[]) {
   const leftovers: string[] = [];
   const lines = header.filter((line) => line.trim());
   lines.forEach((line, lineIndex) => {
+    // A descriptive line under the name ("Data Center Technician | Linux & Server | Networking") is one headline.
+    if (lineIndex > 0 && contact.name && !contact.headline && !EMAIL_RE.test(line) && !PHONE_RE.test(line) && !URL_RE.test(line) && !LOCATION_RE.test(line) && wordCount(line) <= 16 && !isTerminated(line)) {
+      contact.headline = line.trim();
+      return;
+    }
     const segments = splitSegments(line).flatMap((segment) => (segment.includes(",") && /@|https?:|\d{3}/.test(segment) && !LOCATION_RE.test(segment) ? segment.split(/\s*,\s*/) : [segment]));
     segments.forEach((segment, segmentIndex) => {
       let rest = segment;
@@ -354,7 +359,7 @@ function parseProjects(lines: string[], issues: ParseIssue[]): ProjectEntry[] {
 }
 
 function parseEducation(lines: string[], issues: ParseIssue[]): EducationEntry[] {
-  const groups = groupEntries(lines, (line, entry) => entry.header.length > 0 && INSTITUTION_RE.test(line) && entry.header.some((existing) => INSTITUTION_RE.test(existing)));
+  const groups = groupEntries(lines, (line, entry) => entry.header.length > 0 && ((INSTITUTION_RE.test(line) && entry.header.some((existing) => INSTITUTION_RE.test(existing))) || (Boolean(findDates(line)) && entry.header.some((existing) => Boolean(findDates(existing))))));
   return groups.map((group) => {
     const entry: EducationEntry = { id: uid(), institution: "", degree: "", field: "", location: "", startDate: "", endDate: "", gpa: "", details: [] };
     const leftovers: string[] = [];
@@ -400,9 +405,55 @@ function parseEducation(lines: string[], issues: ParseIssue[]): EducationEntry[]
   });
 }
 
+const segmentsOf = (item: string) => item.split(/\s+\|\s+/).map((segment) => segment.trim()).filter(Boolean);
+const hasDateOnlySegment = (segments: string[]) =>
+  segments.some((segment) => {
+    const found = findDates(segment);
+    return Boolean(found && !found.rest.replace(/[\s,()-]/g, ""));
+  });
+/** A line listing several certifications, as opposed to one "Name | Issuer | Date" record. */
+const isInlineList = (item: string) => {
+  const segments = segmentsOf(item);
+  return segments.length >= 2 && ((segments.length >= 3 && !hasDateOnlySegment(segments)) || segments.every((segment) => segment.includes("(")));
+};
+
+/**
+ * One line may list several certifications ("A | B | C", or "A (Issuer, 2020) | B (Issuer, 2021)").
+ * A line that looks like a single "Name | Issuer | Date" record is left alone. A list that wrapped
+ * across lines is rejoined first, so a name split by the wrap ("OSHA 10-Hour / General Industry...") is whole again.
+ */
+export function expandInlineCertifications(items: string[]): string[] {
+  return expandInline(items).map((entry) => entry.text);
+}
+
+function expandInline(items: string[]): { text: string; split: boolean }[] {
+  const joined: string[] = [];
+  for (const item of items) {
+    const previous = joined[joined.length - 1];
+    if (previous !== undefined && isInlineList(previous) && item.includes(" | ") && !isTerminated(previous)) joined[joined.length - 1] = `${previous} ${item}`;
+    else joined.push(item);
+  }
+  return joined.flatMap<{ text: string; split: boolean }>((item) => (isInlineList(item) ? segmentsOf(item).map((text) => ({ text, split: true })) : [{ text: item, split: false }]));
+}
+
 function parseCertifications(lines: string[]): CertificationEntry[] {
-  return toItems(lines).map((item) => {
+  return expandInline(toItems(lines)).map(({ text: item }) => {
     const cert: CertificationEntry = { id: uid(), name: "", issuer: "", date: "", credentialId: "" };
+    // The renderer's inline form: "Name (Issuer, Date, ID 123)".
+    const wrapped = item.match(/^(.*?)\s*\(([^()]+)\)\s*$/);
+    if (wrapped && !/in progress|expected|pending|planned/i.test(wrapped[2])) {
+      const issuer: string[] = [];
+      for (const part of wrapped[2].split(",").map((piece) => piece.trim()).filter(Boolean)) {
+        const found = findDates(part);
+        if (found && !found.rest.replace(/[\s,()-]/g, "")) cert.date = found.start ? `${found.start} – ${found.end}` : found.end;
+        else if (/^ID\s+\S+/i.test(part)) cert.credentialId = part.replace(/^ID\s+/i, "");
+        else issuer.push(part);
+      }
+      cert.name = wrapped[1].trim();
+      cert.issuer = issuer.join(", ");
+      if (cert.name) return cert;
+      cert.name = cert.issuer = cert.date = cert.credentialId = "";
+    }
     let rest = item;
     const credential = rest.match(/\b(?:Credential|Cert(?:ification)?|License)\s*(?:ID|#|No\.?)[:\s#]*([A-Z0-9-]{4,})/i);
     if (credential) {
@@ -477,6 +528,9 @@ function parseSkills(lines: string[], issues: ParseIssue[]): SkillCategory[] {
       const existing = categories.find((category) => category.name.toLowerCase() === name.toLowerCase());
       if (existing) existing.skills.push(...splitList(labelled[2]));
       else categories.push({ id: uid(), name, skills: splitList(labelled[2]) });
+    } else if (categories.length && general.length === 0 && !/^[•\-*]/.test(item)) {
+      // A wrapped continuation of the previous labelled category.
+      categories[categories.length - 1].skills.push(...splitList(item));
     } else {
       const list = splitList(item);
       if (list.length === 1 && wordCount(item) > 6) issues.push({ id: uid(), severity: "info", section: "skills", message: "A long line in Skills was kept as one item. Split it into individual skills if needed.", source: item });

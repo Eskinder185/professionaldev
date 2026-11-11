@@ -1,8 +1,6 @@
 # CareerOS test results — 2026-11-09
 
-> Historical audit of the full uncommitted worktree. The selective CareerOS commit excludes the separate auth and Spring Boot roadmap/API changes; see the commit manifest for exact candidate verification.
-
-All commands below were executed in `<workspace>`. The local preview used `http://127.0.0.1:4173/professionaldev/`; tests ran with isolated browser contexts and no real personal records.
+All commands below were executed in `C:\Users\eskew\github\professionaldev`. The local preview used `http://127.0.0.1:4173/professionaldev/`; tests ran with isolated browser contexts and no real personal records.
 
 | Check | Baseline | Final |
 | --- | --- | --- |
@@ -24,4 +22,4 @@ Playwright covers navigation, mobile drawer, sidebar collapse, theme/setting per
 
 The production build reported main JS `419.23 kB` (`107.54 kB` gzip), CSS `98.02 kB` (`17.92 kB` gzip), and résumé file extraction `1,653.09 kB` (`501.19 kB` gzip). The parser now loads only after a file import action; résumé route rendering no longer requests that chunk. The large parser still triggers Vite's 500 kB warning. No Lighthouse run, LCP/CLS measurement, or valid field INP data was available, so no runtime score or field improvement is claimed.
 
-Screenshot artifacts and machine-readable `baseline-results.json`, `final-results.json`, and `route-sweep.json` are in `<local-audit-root>\audit\`.
+Screenshot artifacts and machine-readable `baseline-results.json`, `final-results.json`, and `route-sweep.json` are in `C:\Users\eskew\.codex\visualizations\2026\11\09\01a1c233-070f-7b80-95fa-714b3d1d8c30\audit\`.

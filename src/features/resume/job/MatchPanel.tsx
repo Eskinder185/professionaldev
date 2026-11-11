@@ -42,6 +42,7 @@ function SuggestionCard({ suggestion, onAccept, onReject }: { suggestion: Sugges
     <li className={`rs-suggestion ${suggestion.apply ? "" : "is-advice"}`}>
       <div className="rs-suggestion-head">
         <span className="rs-badge">{KIND_LABELS[suggestion.kind]}</span>
+        <span className="rs-badge rs-badge-ok">{suggestion.pageImpact}</span>
         <strong>{suggestion.title}</strong>
       </div>
       <div className="rs-diff">
@@ -55,7 +56,9 @@ function SuggestionCard({ suggestion, onAccept, onReject }: { suggestion: Sugges
         </div>
       </div>
       <p className="rs-suggestion-why">{suggestion.explanation}</p>
-      <p className="rs-suggestion-source">Based on: {suggestion.evidence}</p>
+      <p className="rs-suggestion-source">
+        Based on: {suggestion.evidence} · Page-space impact: {suggestion.pageImpact} · Job relevance: {suggestion.relevance}
+      </p>
       {blocked ? <p className="rs-suggestion-block" role="note">Replace the [bracketed] placeholders with what really happened before applying.</p> : null}
       <div className="rs-suggestion-actions">
         {suggestion.apply ? (

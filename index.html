@@ -7,9 +7,11 @@
     <script>
       (function () {
         try {
-          var k = "pd-theme";
-          var t = localStorage.getItem(k);
-          if (!t) t = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+          // Resolve Light / Dark / System before first paint so the page never flashes the wrong theme.
+          var p = localStorage.getItem("pd-theme-pref");
+          var t = p === "light" || p === "dark" ? p : null;
+          if (!t && p !== "system") t = localStorage.getItem("pd-theme");
+          if (t !== "light" && t !== "dark") t = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
           if (t === "light") {
             document.documentElement.classList.add("light");
             document.documentElement.classList.remove("dark");
