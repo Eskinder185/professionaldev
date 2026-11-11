@@ -35,9 +35,11 @@ export default function PDCoach() {
   function send(text: string) {
     if (!text.trim()) return;
     const now = Date.now();
-    const next = [...msgs, { role: "user", text, time: now }];
+    const userMessage: Msg = { role: "user", text, time: now };
+    const next: Msg[] = [...msgs, userMessage];
     const reply = respond(text);
-    setMsgs([...next, { role: "assistant", text: reply, time: now + 1 }]);
+    const assistantMessage: Msg = { role: "assistant", text: reply, time: now + 1 };
+    setMsgs([...next, assistantMessage]);
     setInput("");
   }
 

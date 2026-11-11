@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: roadmap-api
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:roadmap}
+    username: ${DB_USER:roadmap_dev}
+    password: ${DB_PASSWORD:roadmap_dev_password}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 1
+  flyway:
+    enabled: true
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+server:
+  port: ${PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+app:
+  security:
+    oidc:
+      issuer-uri: ${OIDC_ISSUER_URI:}
+      jwk-set-uri: ${OIDC_JWK_SET_URI:}
+      audience: ${OIDC_AUDIENCE:roadmap-api}
+    local:
+      learner-password: ${LOCAL_LEARNER_PASSWORD:}
+      reviewer-password: ${LOCAL_REVIEWER_PASSWORD:}

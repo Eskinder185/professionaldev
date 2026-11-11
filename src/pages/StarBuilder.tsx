@@ -7,14 +7,18 @@ export default function StarBuilder() {
     try {
       return JSON.parse(localStorage.getItem("starBuilder:draft") || "{}");
     } catch {
-      return {} as any;
+      return { situation: "", task: "", action: "", result: "" };
     }
   });
   const [step, setStep] = useState(0);
   const previewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try { localStorage.setItem("starBuilder:draft", JSON.stringify(data)); } catch {}
+    try {
+      localStorage.setItem("starBuilder:draft", JSON.stringify(data));
+    } catch {
+      // Keep the editor usable if browser storage is unavailable.
+    }
   }, [data]);
 
   const next = () => setStep((s) => Math.min(3, s + 1));
@@ -22,17 +26,15 @@ export default function StarBuilder() {
 
   const exportPDF = async () => {
     try {
-      const jspdfName = 'jspdf';
-      const html2canvasName = 'html2canvas';
-      const [{ jsPDF }, html2canvas] = await Promise.all([
-        import(/* @vite-ignore */ (jspdfName as any)),
-        import(/* @vite-ignore */ (html2canvasName as any)),
+      const [{ jsPDF }, { default: html2canvas }] = await Promise.all([
+        import("jspdf"),
+        import("html2canvas"),
       ]);
       const el = previewRef.current;
       if (!el) return;
-      const canvas = await (html2canvas as any).default(el, { scale: 2, backgroundColor: "#ffffff" });
+      const canvas = await html2canvas(el, { scale: 2, backgroundColor: "#ffffff" });
       const img = canvas.toDataURL("image/png");
-      const pdf = new (jsPDF as any)({ unit: "pt", format: "a4" });
+      const pdf = new jsPDF({ unit: "pt", format: "a4" });
       const w = pdf.internal.pageSize.getWidth();
       const h = (canvas.height * w) / canvas.width;
       pdf.addImage(img, "PNG", 0, 0, w, h);

@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../sidepanel/main.css" />
+    <title>CareerOS AutoApply — Options &amp; Privacy</title>
+    <style>
+      /* Colours come from the shared side panel stylesheet (light, dark, and system aware). */
+      :root {
+        --card: var(--surface);
+        --primary: var(--accent);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 28px;
+        max-width: 820px;
+        margin-inline: auto;
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0 0 6px 0;
+      }
+      h2 {
+        font-size: 15px;
+        margin: 0 0 10px 0;
+      }
+      .subtitle {
+        color: var(--muted);
+        font-size: 13px;
+        margin-bottom: 20px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      ul {
+        margin: 6px 0;
+        padding-left: 18px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      li {
+        margin-bottom: 5px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      input[type="text"],
+      input[type="number"] {
+        padding: 7px 10px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 13px;
+      }
+      .btn {
+        appearance: none;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 14px;
+        border-radius: 7px;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: var(--accent-text, #ffffff);
+      }
+      .btn-danger {
+        background: var(--danger);
+        border-color: var(--danger);
+        color: var(--accent-text, #ffffff);
+      }
+      .mono {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CareerOS AutoApply — Privacy &amp; Extension Settings</h1>
+    <div class="subtitle">
+      Explicit consent, minimal permissions, and human-in-the-loop control.
+    </div>
+
+    <section class="card" data-testid="options-appearance">
+      <h2>Appearance</h2>
+      <div class="row">
+        <label for="opt-theme">Theme</label>
+        <select id="opt-theme" data-testid="opt-theme">
+          <option value="system">System (follow this device)</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+        <span id="opt-theme-feedback" aria-live="polite" class="subtitle" style="margin: 0"></span>
+      </div>
+      <p class="subtitle" style="margin: 8px 0 0">Changing appearance on the CareerOS website updates the extension too.</p>
+    </section>
+
+    <section class="card" data-testid="options-privacy-disclosures">
+      <h2>Privacy &amp; Security Guarantees</h2>
+      <ul id="opt-disclosures-list">
+        <li>Never reads passwords, cookies, payment details, or unrelated browsing tabs.</li>
+        <li>Never receives or stores AI API keys inside content scripts or extension storage.</li>
+        <li>Never auto-answers work authorization, visa sponsorship, EEO/demographic, background-check, or legal signature fields.</li>
+        <li>Never bypasses CAPTCHA, anti-bot gates, or login walls.</li>
+        <li>Never submits an application without explicit user review and confirmation.</li>
+      </ul>
+    </section>
+
+    <section data-testid="options-ai-settings"><div id="opt-ai-settings"></div></section>
+
+    <section class="card" data-testid="options-allowed-domains">
+      <h2>Allowed Application Domains</h2>
+      <div id="opt-domains-list" class="mono" data-testid="opt-domains-list"></div>
+      <div class="row">
+        <input id="opt-new-domain" type="text" placeholder="e.g. jobs.ashbyhq.com" data-testid="opt-new-domain" />
+        <button id="opt-btn-add-domain" class="btn btn-primary" type="button" data-testid="opt-btn-add-domain">
+          Add Domain
+        </button>
+      </div>
+    </section>
+
+    <section class="card" data-testid="options-storage-controls">
+      <h2>Local Profile Storage &amp; Retention</h2>
+      <div class="row">
+        <label for="opt-retention-days">Retention period (days):</label>
+        <input id="opt-retention-days" type="number" min="1" max="365" value="30" data-testid="opt-retention-days" />
+        <button id="opt-btn-save-retention" class="btn" type="button" data-testid="opt-btn-save-retention">
+          Save Retention
+        </button>
+      </div>
+      <div class="row">
+        <button id="opt-btn-clear-data" class="btn btn-danger" type="button" data-testid="opt-btn-clear-data">
+          Clear All AutoApply Data
+        </button>
+        <span id="opt-clear-feedback" aria-live="polite" data-testid="opt-clear-feedback"></span>
+      </div>
+    </section>
+
+    <section class="card" data-testid="options-diagnostics">
+      <h2>CareerOS Connection Troubleshooting &amp; Diagnostics</h2>
+      <div id="opt-diagnostics-output" class="mono" data-testid="opt-diagnostics-output">
+        Loading diagnostics...
+      </div>
+    </section>
+
+    <script type="module" src="./main.ts"></script>
+    <script type="module" src="./ai.js"></script>
+  </body>
+</html>

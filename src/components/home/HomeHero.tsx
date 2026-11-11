@@ -83,10 +83,10 @@ export default function HomeHero() {
 
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <Link
-                to="/self-assessment"
+                to="/dashboard"
                 className="btn btn-primary inline-flex min-h-12 w-full items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold sm:w-auto sm:min-h-11"
               >
-                Start with Discover
+                Open CareerOS
                 <ArrowRight className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
               </Link>
               <Link

@@ -32,7 +32,9 @@ export default function InterviewSim() {
   useEffect(() => {
     try {
       localStorage.setItem("interviewSim:autoRecord", autoRecord ? "1" : "0");
-    } catch {}
+    } catch {
+      // Recording practice still works when preferences cannot be persisted.
+    }
   }, [autoRecord]);
 
   const start = async () => {
@@ -46,7 +48,7 @@ export default function InterviewSim() {
     const it = copy[idx];
     copy[idx] = { ...it, endedAt: Date.now() };
     setItems(copy);
-    if (autoRecord) await rec.stop(`Q${idx + 1}`);
+    if (autoRecord) await rec.stop();
   };
   const next = () => setIdx((i) => Math.min(items.length - 1, i + 1));
   const prev = () => setIdx((i) => Math.max(0, i - 1));
@@ -83,23 +85,48 @@ export default function InterviewSim() {
             setItems(copy);
           }}
         />
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <button type="button" className="btn surface-muted min-h-10 px-4" onClick={prev} disabled={idx === 0}>
             Prev
           </button>
-          <button type="button" className="btn surface-muted min-h-10 px-4" onClick={start}>
-            Start
+          <button type="button" className={`btn min-h-10 px-4 ${rec.isRecording ? "btn-danger" : "btn-primary"}`} onClick={rec.isRecording ? stop : start}>
+            {rec.isRecording ? "Stop recording" : "Start"}
           </button>
-          <button type="button" className="btn surface-muted min-h-10 px-4" onClick={stop}>
-            Stop
-          </button>
+          {rec.isRecording && (
+            <button type="button" className="btn surface-muted min-h-10 px-4" onClick={stop}>
+              Stop
+            </button>
+          )}
           <button type="button" className="btn surface-muted min-h-10 px-4" onClick={next} disabled={idx === items.length - 1}>
             Next
           </button>
-          <label className="ml-auto flex items-center gap-2 text-sm text-ink-muted">
-            <input type="checkbox" checked={autoRecord} onChange={(e) => setAutoRecord(e.target.checked)} /> Auto-record
+          <label className="ml-auto flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
+            <input type="checkbox" checked={autoRecord} onChange={(e) => setAutoRecord(e.target.checked)} /> Auto-record microphone
           </label>
         </div>
+
+        {rec.isRecording && (
+          <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-500/10 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400" role="status">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+            </span>
+            <span>Recording audio… {Math.round(rec.elapsedMs / 1000)}s</span>
+          </div>
+        )}
+
+        {rec.error && (
+          <div className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300" role="alert">
+            {rec.error}
+          </div>
+        )}
+
+        {rec.url && !rec.isRecording && (
+          <div className="mt-4 rounded-xl border border-border/80 bg-surface-muted/40 p-4">
+            <div className="text-sm font-medium text-ink dark:text-white">Review your recording:</div>
+            <audio controls src={rec.url} className="mt-2 w-full h-10" />
+          </div>
+        )}
       </section>
 
       <section className="border-t border-border/70 pt-8 sm:pt-10 pb-4">

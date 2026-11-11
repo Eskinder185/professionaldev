@@ -34,7 +34,7 @@ export default function CertsLearning() {
     const out: { week: number; stepId: string; title: string; hours: number; type: string }[] = [];
     let w = 1, rem = hoursPerWeek;
     for (const s of current.steps) {
-      let h = s.hours; let title = s.title; let id = s.id;
+      let h = s.hours; const title = s.title; const id = s.id;
       while (h > 0) {
         const take = Math.min(h, rem);
         out.push({ week: w, stepId: id, title, hours: take, type: s.type });
@@ -50,14 +50,13 @@ export default function CertsLearning() {
 
   const exportPDF = async () => {
     if (!reportRef.current) return;
-    const jspdfName = 'jspdf'; const html2canvasName = 'html2canvas';
-    const [{ jsPDF }, html2canvas] = await Promise.all([
-      import(/* @vite-ignore */ (jspdfName as any)),
-      import(/* @vite-ignore */ (html2canvasName as any)),
+    const [{ jsPDF }, { default: html2canvas }] = await Promise.all([
+      import("jspdf"),
+      import("html2canvas"),
     ]);
-    const canvas = await (html2canvas as any).default(reportRef.current, { scale: 2, backgroundColor: '#ffffff' });
+    const canvas = await html2canvas(reportRef.current, { scale: 2, backgroundColor: '#ffffff' });
     const img = canvas.toDataURL('image/png');
-    const pdf = new (jsPDF as any)({ unit: 'pt', format: 'a4' });
+    const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
     const w = pdf.internal.pageSize.getWidth(); const h = canvas.height * (w / canvas.width);
     pdf.addImage(img, 'PNG', 0, 0, w, h); pdf.save('certs-plan.pdf');
   };

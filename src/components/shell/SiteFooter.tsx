@@ -12,7 +12,7 @@ export default function SiteFooter() {
       <div className="mx-auto max-w-content px-4 sm:px-6">
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between md:gap-6">
           <div className="max-w-prose">
-            <p className="text-sm font-semibold text-ink dark:text-white">Roadmap to Role</p>
+            <p className="text-sm font-semibold text-ink dark:text-white">ProfessionalDev CareerOS</p>
             <p className="mt-1 text-sm text-ink-muted">
               Discover strengths, build proof, and grow into the role you want — with clarity and
               structure.
@@ -95,7 +95,7 @@ export default function SiteFooter() {
           </nav>
 
           <p className="text-caption text-ink-faint md:shrink-0 md:text-right">
-            © {new Date().getFullYear()} Roadmap to Role
+            © {new Date().getFullYear()} ProfessionalDev CareerOS
           </p>
         </div>
       </div>

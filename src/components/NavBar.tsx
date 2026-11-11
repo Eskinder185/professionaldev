@@ -14,7 +14,8 @@ const PRIMARY_NAV: {
   ariaLabel?: string;
 }[] = [
   { to: "/", label: "Home", end: true },
-  { to: "/about", label: "About", ariaLabel: "About Roadmap to Role" },
+  { to: "/dashboard", label: "CareerOS", ariaLabel: "Open CareerOS workspace" },
+  { to: "/about", label: "About", ariaLabel: "About ProfessionalDev CareerOS" },
   { to: "/self-assessment", label: "Discover", ariaLabel: "Discover: self-assessment" },
   { to: "/career-tools", label: "Build", ariaLabel: "Build: career tools" },
   { to: "/resources", label: "Grow", ariaLabel: "Grow: resources and trackers" },
@@ -140,7 +141,7 @@ export default function NavBar() {
           onClick={close}
         >
           <span className="truncate text-[15px] font-semibold tracking-[-0.03em] text-ink dark:text-white">
-            Roadmap to Role
+            ProfessionalDev CareerOS
           </span>
           <span className="hidden text-[13px] font-normal tracking-[-0.01em] text-ink-muted sm:inline dark:text-ink-muted">
             <span className="text-ink-faint/80 dark:text-white/25" aria-hidden>

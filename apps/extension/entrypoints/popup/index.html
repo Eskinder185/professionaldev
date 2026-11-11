@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>CareerOS AutoApply</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --surface-2: #f1f5f9;
+        --text: #0f172a;
+        --muted: #475569;
+        --border: #dbe3ee;
+        --accent: #2563eb;
+        --accent-2: #06b6d4;
+        --success: #15803d;
+        --success-soft: #dcfce7;
+        --warning: #92400e;
+        --warning-soft: #fef3c7;
+        --danger: #b91c1c;
+        --danger-soft: #fee2e2;
+        color-scheme: light;
+      }
+      /* Dark: by explicit choice, or by the system when no choice (or "System") is set. */
+      :root[data-theme="dark"] {
+          --bg: #131c2e;
+          --surface-2: #1b2640;
+          --text: #e6edf7;
+          --muted: #a3b2c8;
+          --border: #26324d;
+          --accent: #60a5fa;
+          --accent-2: #22d3ee;
+          --success: #4ade80;
+          --success-soft: #11321f;
+          --warning: #fbbf24;
+          --warning-soft: #3a2c0b;
+          --danger: #f87171;
+          --danger-soft: #3b1414;
+          color-scheme: dark;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #131c2e;
+          --surface-2: #1b2640;
+          --text: #e6edf7;
+          --muted: #a3b2c8;
+          --border: #26324d;
+          --accent: #60a5fa;
+          --accent-2: #22d3ee;
+          --success: #4ade80;
+          --success-soft: #11321f;
+          --warning: #fbbf24;
+          --warning-soft: #3a2c0b;
+          --danger: #f87171;
+          --danger-soft: #3b1414;
+          color-scheme: dark;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        width: 340px;
+        padding: 14px 16px 16px;
+        font-family: Inter, "Segoe UI", system-ui, sans-serif;
+        font-size: 14px;
+        line-height: 1.45;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .logo {
+        width: 28px;
+        height: 28px;
+        border-radius: 9px;
+        background: linear-gradient(135deg, #2563eb, #06b6d4);
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0;
+        letter-spacing: -0.02em;
+      }
+      .badge {
+        margin-left: auto;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 9px;
+        border-radius: 999px;
+        background: var(--surface-2);
+        color: var(--muted);
+      }
+      .badge.supported {
+        background: var(--success-soft);
+        color: var(--success);
+      }
+      .badge.partial {
+        background: var(--warning-soft);
+        color: var(--warning);
+      }
+      .badge.unsupported {
+        background: var(--danger-soft);
+        color: var(--danger);
+      }
+      .panel {
+        background: var(--surface-2);
+        border-radius: 12px;
+        padding: 10px 12px;
+        display: grid;
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 96px 1fr;
+        gap: 8px;
+        font-size: 13px;
+      }
+      .label {
+        color: var(--muted);
+      }
+      .val {
+        font-weight: 600;
+        overflow-wrap: anywhere;
+      }
+      .btn {
+        appearance: none;
+        width: 100%;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        font: inherit;
+        font-weight: 600;
+        padding: 9px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        min-height: 38px;
+      }
+      .btn:hover {
+        background: var(--surface-2);
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        border-color: transparent;
+        color: #fff;
+        min-height: 44px;
+        font-size: 15px;
+      }
+      .btn-primary:hover {
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        filter: brightness(1.07);
+      }
+      .btn-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      #btn-open-sidepanel {
+        margin-bottom: 0;
+      }
+      .feedback {
+        margin-top: 10px;
+        font-size: 12.5px;
+        color: var(--muted);
+        min-height: 18px;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="logo" aria-hidden="true"></div>
+      <h1>CareerOS</h1>
+      <span id="popup-platform-badge" class="badge" data-testid="popup-platform-badge">Checking…</span>
+    </div>
+
+    <div class="panel" aria-label="Current application status">
+      <div class="row">
+        <span class="label">Connection</span>
+        <span id="popup-connection-status" class="val" data-testid="popup-connection-status">Checking…</span>
+      </div>
+      <div class="row">
+        <span class="label">This page</span>
+        <span id="popup-detected-platform" class="val" data-testid="popup-detected-platform">–</span>
+      </div>
+      <div class="row">
+        <span class="label">Job</span>
+        <span id="popup-active-role" class="val" data-testid="popup-active-role">No job detected</span>
+      </div>
+      <div class="row">
+        <span class="label">Queue status</span>
+        <span id="popup-queue-status" class="val" data-testid="popup-queue-status">–</span>
+      </div>
+      <div class="row">
+        <span class="label">Profile</span>
+        <span id="popup-profile-status" class="val" data-testid="popup-profile-status">–</span>
+      </div>
+    </div>
+
+    <button id="btn-open-sidepanel" class="btn btn-primary" type="button" data-testid="btn-open-sidepanel">
+      Open AutoApply Side Panel
+    </button>
+    <div class="btn-row">
+      <button id="btn-open-careeros" class="btn" type="button" data-testid="btn-open-careeros">CareerOS website</button>
+      <button id="btn-open-settings" class="btn" type="button" data-testid="btn-open-settings">Settings</button>
+    </div>
+
+    <div id="popup-feedback" class="feedback" role="status" aria-live="polite" data-testid="popup-feedback">
+      CareerOS never submits an application for you.
+    </div>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

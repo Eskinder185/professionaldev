@@ -1,10 +1,27 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import react from "@vitejs/plugin-react";
+import { defineConfig, loadEnv } from "vite";
 
 // Configure the base path so that assets and routes resolve correctly when
 // deploying to a subfolder (e.g. GitHub Pages). Here the project is
 // hosted at /professionaldev/ under the user's GitHub Pages site.
-export default defineConfig({
-  base: '/professionaldev/',
-  plugins: [react()],
-})
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, ".", "");
+  const backendPort = env.ROADMAP_API_PORT || "8080";
+
+  if (!/^\d+$/.test(backendPort)) {
+    throw new Error("ROADMAP_API_PORT must be a numeric TCP port");
+  }
+
+  return {
+    base: "/professionaldev/",
+    plugins: [react()],
+    server: {
+      proxy: {
+        "/api": {
+          target: `http://127.0.0.1:${backendPort}`,
+          changeOrigin: true,
+        },
+      },
+    },
+  };
+});

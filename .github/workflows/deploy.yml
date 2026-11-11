@@ -5,36 +5,75 @@ on:
   # manually via the Actions tab with the workflow_dispatch event.
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: 'pages'
   cancel-in-progress: true
 
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run ext:typecheck
+      - run: npm run test
+      - run: npm run build
+      - run: npm run ext:build
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # The extension specs load the unpacked build from apps/extension/dist.
+      - run: npm run ext:build
+      - run: npm run test:e2e
+
+  build-pages:
+    if: github.event_name != 'pull_request'
+    needs: [validate, e2e]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run build
-      # Copy index.html to 404.html so that React Router deep links work on Pages
-      - run: cp dist/index.html dist/404.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+
   deploy:
-    needs: build
+    if: github.event_name != 'pull_request'
+    needs: build-pages
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

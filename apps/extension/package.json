@@ -1,0 +1,12 @@
+{
+  "name": "@careeros/autoapply-extension",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CareerOS AutoApply — Privacy-conscious job application autofill companion for ProfessionalDev CareerOS",
+  "scripts": {
+    "build": "node ./scripts/build-mv3.mjs",
+    "dev": "node ./scripts/build-mv3.mjs --watch",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}
