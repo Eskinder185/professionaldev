@@ -1,0 +1,4 @@
+# The cron equivalent of the systemd timer (use one or the other, not both).
+# Edit with: sudo crontab -u careeros -e
+# Secrets are loaded from a root-owned, mode-600 file. Output goes to a file that logrotate manages.
+15 8,18 * * * set -a; . /etc/careeros/api.env; . /etc/careeros/portals.env; set +a; cd /opt/careeros/apps/careeros-api && CAREEROS_SESSION_DIR=/var/lib/careeros/sessions .venv/bin/python -m jobs.sync_ats_status >> /var/log/careeros/sync.log 2>&1

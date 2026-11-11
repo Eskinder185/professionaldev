@@ -12,6 +12,12 @@ export default defineConfig(({ mode }) => {
     throw new Error("ROADMAP_API_PORT must be a numeric TCP port");
   }
 
+  // The opt-in home-lab FastAPI service (apps/careeros-api). Separate from the roadmap API above.
+  const careerosPort = env.CAREEROS_API_PORT || "8000";
+  if (!/^\d+$/.test(careerosPort)) {
+    throw new Error("CAREEROS_API_PORT must be a numeric TCP port");
+  }
+
   return {
     base: "/professionaldev/",
     plugins: [react()],
@@ -19,6 +25,10 @@ export default defineConfig(({ mode }) => {
       proxy: {
         "/api": {
           target: `http://127.0.0.1:${backendPort}`,
+          changeOrigin: true,
+        },
+        "/careeros": {
+          target: `http://127.0.0.1:${careerosPort}`,
           changeOrigin: true,
         },
       },

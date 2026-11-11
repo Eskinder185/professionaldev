@@ -1,0 +1,22 @@
+# /etc/systemd/system/careeros-api.service
+[Unit]
+Description=CareerOS API (FastAPI)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+User=careeros
+Group=careeros
+WorkingDirectory=/opt/careeros/apps/careeros-api
+# Holds CAREEROS_DATABASE_URL and CAREEROS_API_TOKEN. Create it root-owned, mode 600.
+EnvironmentFile=/etc/careeros/api.env
+ExecStart=/opt/careeros/apps/careeros-api/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

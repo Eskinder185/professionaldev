@@ -1,0 +1,11 @@
+# Runtime dependencies, pinned to the versions this service was built and tested with (Python 3.11).
+fastapi==0.162.4
+uvicorn[standard]==0.54.0
+SQLAlchemy==2.1.8
+psycopg[binary]==3.3.8
+pydantic==2.14.3
+pydantic-settings==2.16.2
+httpx==0.28.1
+alembic==1.20.1
+# Used only by jobs/sync_ats_status.py; install with `playwright install --with-deps chromium`.
+playwright==1.65.0

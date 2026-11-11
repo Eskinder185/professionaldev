@@ -12,6 +12,7 @@ import "./styles/components.css";
 import "./styles/tailwind.css";
 import "./styles/careeros.css";
 import "./styles/careeros-polish.css";
+import "./styles/homelab.css";
 
 function render() {
   ReactDOM.createRoot(document.getElementById("root")!).render(

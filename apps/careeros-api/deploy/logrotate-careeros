@@ -1,0 +1,9 @@
+# /etc/logrotate.d/careeros  (only needed for the cron variant; systemd logs go to journald)
+/var/log/careeros/*.log {
+    weekly
+    rotate 8
+    compress
+    missingok
+    notifempty
+    create 0640 careeros careeros
+}

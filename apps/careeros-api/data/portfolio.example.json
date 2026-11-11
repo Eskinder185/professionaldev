@@ -1,0 +1,24 @@
+{
+  "example": true,
+  "_note": "EXAMPLE FORMAT ONLY. Every entry below is a placeholder, not a real project, lab, certification or skill level. Copy this file, replace it with your own true entries, and delete the \"example\" line.",
+  "profile": { "display_name": "Your Name" },
+  "profile_skills": [
+    { "skill": "Linux", "proficiency": 3, "years": 2, "evidence": "Describe the real work this rating rests on (required for 3 or higher)." }
+  ],
+  "roles": [
+    { "slug": "aws-datacenter", "title": "AWS Data Center Technician", "description": "Hands-on infrastructure and hardware work." },
+    { "slug": "react-dev", "title": "React Developer", "description": "Front-end application work." }
+  ],
+  "items": [
+    {
+      "slug": "example-home-lab",
+      "type": "lab",
+      "title": "Example: home networking lab",
+      "summary": "Replace with what you actually built and learned.",
+      "published": false,
+      "sort_order": 0,
+      "roles": { "aws-datacenter": 5 },
+      "skills": ["Linux"]
+    }
+  ]
+}

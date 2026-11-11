@@ -1,0 +1,12 @@
+# /etc/systemd/system/careeros-sync.timer
+[Unit]
+Description=Check application statuses a few times a day
+
+[Timer]
+# Twice a day, with random spread so it never hits a portal at the exact same second.
+OnCalendar=*-*-* 08,18:15:00
+RandomizedDelaySec=20min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

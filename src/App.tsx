@@ -28,6 +28,9 @@ const ResumeStudioPage = lazy(() => import("./features/resume/ResumeStudioPage")
 const AnalyticsPage = lazy(() => import("./features/career/AnalyticsPage"));
 const CoachPage = lazy(() => import("./features/ai/CoachPage"));
 const InterviewStudioPage = lazy(() => import("./features/interviews/InterviewStudioPage"));
+const RolePortfolioPage = lazy(() => import("./features/homelab/PortfolioPage"));
+const InterviewLabPage = lazy(() => import("./features/homelab/InterviewLabPage"));
+const SkillGapPage = lazy(() => import("./features/homelab/SkillGapPage"));
 
 const BehavioralBank = lazy(() => import("./pages/CareerTools/BehavioralBank"));
 const CareerTools = lazy(() => import("./pages/CareerTools/Index"));
@@ -86,6 +89,10 @@ export default function App() {
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/coach" element={<CoachPage />} />
           <Route path="/interviews" element={<InterviewStudioPage />} />
+          <Route path="/portfolio" element={<RolePortfolioPage />} />
+          <Route path="/lab/interview" element={<InterviewLabPage />} />
+          <Route path="/lab/skill-gap" element={<SkillGapPage />} />
+          <Route path="/lab/skill-gap/:id" element={<SkillGapPage />} />
           <Route path="/about" element={<About />} />
 
           {/* High-impact tools */}

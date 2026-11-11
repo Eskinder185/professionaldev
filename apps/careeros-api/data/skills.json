@@ -1,0 +1,1805 @@
+{
+ "source": "src/features/resume/job/taxonomy.ts",
+ "generated_by": "scripts/export_taxonomy.mjs",
+ "skills": [
+  {
+   "name": "Python",
+   "category": "Programming Languages",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "JavaScript",
+   "category": "Programming Languages",
+   "aliases": [
+    "JS",
+    "ECMAScript"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "TypeScript",
+   "category": "Programming Languages",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Java",
+   "category": "Programming Languages",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "C#",
+   "category": "Programming Languages",
+   "aliases": [
+    "C sharp"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "C++",
+   "category": "Programming Languages",
+   "aliases": [
+    "cpp"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "C",
+   "category": "Programming Languages",
+   "aliases": [],
+   "case_sensitive": true
+  },
+  {
+   "name": "Go",
+   "category": "Programming Languages",
+   "aliases": [
+    "Golang"
+   ],
+   "case_sensitive": true
+  },
+  {
+   "name": "Rust",
+   "category": "Programming Languages",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Ruby",
+   "category": "Programming Languages",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "PHP",
+   "category": "Programming Languages",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Swift",
+   "category": "Programming Languages",
+   "aliases": [],
+   "case_sensitive": true
+  },
+  {
+   "name": "Kotlin",
+   "category": "Programming Languages",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Scala",
+   "category": "Programming Languages",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "R",
+   "category": "Programming Languages",
+   "aliases": [],
+   "case_sensitive": true
+  },
+  {
+   "name": "SQL",
+   "category": "Programming Languages",
+   "aliases": [
+    "T-SQL",
+    "PL/SQL"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Bash",
+   "category": "Programming Languages",
+   "aliases": [
+    "Bash scripting",
+    "shell scripting",
+    "shell scripts"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "PowerShell",
+   "category": "Programming Languages",
+   "aliases": [
+    "PowerShell scripting"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Perl",
+   "category": "Programming Languages",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "MATLAB",
+   "category": "Programming Languages",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "HTML",
+   "category": "Programming Languages",
+   "aliases": [
+    "HTML5"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "CSS",
+   "category": "Programming Languages",
+   "aliases": [
+    "CSS3"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Dart",
+   "category": "Programming Languages",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Objective-C",
+   "category": "Programming Languages",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "React",
+   "category": "Frameworks & Libraries",
+   "aliases": [
+    "React.js",
+    "ReactJS"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Angular",
+   "category": "Frameworks & Libraries",
+   "aliases": [
+    "AngularJS"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Vue",
+   "category": "Frameworks & Libraries",
+   "aliases": [
+    "Vue.js",
+    "VueJS"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Next.js",
+   "category": "Frameworks & Libraries",
+   "aliases": [
+    "NextJS"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Node.js",
+   "category": "Frameworks & Libraries",
+   "aliases": [
+    "NodeJS",
+    "Node"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Express",
+   "category": "Frameworks & Libraries",
+   "aliases": [
+    "Express.js"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Django",
+   "category": "Frameworks & Libraries",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Flask",
+   "category": "Frameworks & Libraries",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "FastAPI",
+   "category": "Frameworks & Libraries",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Spring Boot",
+   "category": "Frameworks & Libraries",
+   "aliases": [
+    "Spring"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": ".NET",
+   "category": "Frameworks & Libraries",
+   "aliases": [
+    "ASP.NET",
+    ".NET Core",
+    "dotnet"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Ruby on Rails",
+   "category": "Frameworks & Libraries",
+   "aliases": [
+    "Rails"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Laravel",
+   "category": "Frameworks & Libraries",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "jQuery",
+   "category": "Frameworks & Libraries",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Tailwind CSS",
+   "category": "Frameworks & Libraries",
+   "aliases": [
+    "Tailwind"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Bootstrap",
+   "category": "Frameworks & Libraries",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "TensorFlow",
+   "category": "Frameworks & Libraries",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "PyTorch",
+   "category": "Frameworks & Libraries",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "pandas",
+   "category": "Frameworks & Libraries",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "NumPy",
+   "category": "Frameworks & Libraries",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "scikit-learn",
+   "category": "Frameworks & Libraries",
+   "aliases": [
+    "sklearn"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "AWS IAM",
+   "category": "Cloud Platforms",
+   "aliases": [
+    "AWS Identity and Access Management",
+    "AWS Identity & Access Management",
+    "Amazon IAM"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Amazon EC2",
+   "category": "Cloud Platforms",
+   "aliases": [
+    "EC2",
+    "AWS EC2"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Amazon S3",
+   "category": "Cloud Platforms",
+   "aliases": [
+    "S3",
+    "AWS S3"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "AWS Lambda",
+   "category": "Cloud Platforms",
+   "aliases": [
+    "Lambda"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "AWS CloudFormation",
+   "category": "Cloud Platforms",
+   "aliases": [
+    "CloudFormation"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Amazon CloudWatch",
+   "category": "Cloud Platforms",
+   "aliases": [
+    "CloudWatch"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Amazon CloudFront",
+   "category": "Cloud Platforms",
+   "aliases": [
+    "CloudFront"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Amazon Bedrock",
+   "category": "Cloud Platforms",
+   "aliases": [
+    "AWS Bedrock",
+    "Bedrock"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Amazon VPC",
+   "category": "Cloud Platforms",
+   "aliases": [
+    "VPC",
+    "AWS VPC"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "AWS",
+   "category": "Cloud Platforms",
+   "aliases": [
+    "Amazon Web Services"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Microsoft Entra ID",
+   "category": "Cloud Platforms",
+   "aliases": [
+    "Azure Active Directory",
+    "Azure AD",
+    "Entra ID",
+    "AAD"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Azure",
+   "category": "Cloud Platforms",
+   "aliases": [
+    "Microsoft Azure"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Google Cloud",
+   "category": "Cloud Platforms",
+   "aliases": [
+    "GCP",
+    "Google Cloud Platform"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Microsoft 365",
+   "category": "Cloud Platforms",
+   "aliases": [
+    "Office 365",
+    "O365",
+    "M365"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Google Workspace",
+   "category": "Cloud Platforms",
+   "aliases": [
+    "G Suite"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Windows Server",
+   "category": "Operating Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Windows",
+   "category": "Operating Systems",
+   "aliases": [
+    "Windows 10",
+    "Windows 11",
+    "Windows OS",
+    "Microsoft Windows"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Linux",
+   "category": "Operating Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Ubuntu",
+   "category": "Operating Systems",
+   "aliases": [
+    "Ubuntu Server"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Debian",
+   "category": "Operating Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Red Hat Enterprise Linux",
+   "category": "Operating Systems",
+   "aliases": [
+    "RHEL",
+    "Red Hat"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "CentOS",
+   "category": "Operating Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "macOS",
+   "category": "Operating Systems",
+   "aliases": [
+    "Mac OS",
+    "OS X"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "iOS",
+   "category": "Operating Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Android",
+   "category": "Operating Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Unix",
+   "category": "Operating Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Proxmox VE",
+   "category": "Operating Systems",
+   "aliases": [
+    "Proxmox"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "TrueNAS",
+   "category": "Operating Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "TCP/IP",
+   "category": "Networking",
+   "aliases": [
+    "TCP",
+    "TCP IP"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "DNS",
+   "category": "Networking",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "DHCP",
+   "category": "Networking",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "VLAN",
+   "category": "Networking",
+   "aliases": [
+    "VLANs"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "VPN",
+   "category": "Networking",
+   "aliases": [
+    "VPNs"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "LAN/WAN",
+   "category": "Networking",
+   "aliases": [
+    "LAN",
+    "WAN"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "SD-WAN",
+   "category": "Networking",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Routing and switching",
+   "category": "Networking",
+   "aliases": [
+    "routing",
+    "switching",
+    "routers",
+    "switches"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "OSPF",
+   "category": "Networking",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "BGP",
+   "category": "Networking",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Firewalls",
+   "category": "Networking",
+   "aliases": [
+    "firewall",
+    "firewall configuration"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Load balancing",
+   "category": "Networking",
+   "aliases": [
+    "load balancers"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Wireless networking",
+   "category": "Networking",
+   "aliases": [
+    "Wi-Fi",
+    "WiFi",
+    "wireless"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Cisco IOS",
+   "category": "Networking",
+   "aliases": [
+    "Cisco"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Subnetting",
+   "category": "Networking",
+   "aliases": [
+    "subnets"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "SSH",
+   "category": "Networking",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "OSI model",
+   "category": "Networking",
+   "aliases": [
+    "OSI Layers",
+    "Layer 1",
+    "Layer 2",
+    "Layer 3",
+    "Layer 4"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Tailscale",
+   "category": "Networking",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Structured cabling",
+   "category": "Networking",
+   "aliases": [
+    "fiber/copper cabling",
+    "fiber and copper cabling",
+    "structured cabling",
+    "cabling",
+    "fiber optic",
+    "Cat6"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "SIEM",
+   "category": "Security",
+   "aliases": [
+    "security information and event management"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Splunk",
+   "category": "Security",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Incident response",
+   "category": "Security",
+   "aliases": [
+    "incident handling"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Vulnerability management",
+   "category": "Security",
+   "aliases": [
+    "vulnerability scanning",
+    "vulnerability assessment",
+    "vulnerability assessments"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Nessus",
+   "category": "Security",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Wireshark",
+   "category": "Security",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "IDS/IPS",
+   "category": "Security",
+   "aliases": [
+    "intrusion detection",
+    "intrusion prevention",
+    "IDS",
+    "IPS"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "EDR",
+   "category": "Security",
+   "aliases": [
+    "endpoint detection and response"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Penetration testing",
+   "category": "Security",
+   "aliases": [
+    "pen testing",
+    "pentesting"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Threat hunting",
+   "category": "Security",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "NIST frameworks",
+   "category": "Security",
+   "aliases": [
+    "NIST",
+    "NIST CSF",
+    "NIST 800-53"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "ISO 27001",
+   "category": "Security",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Zero Trust",
+   "category": "Security",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Identity & Access Management",
+   "category": "Security",
+   "aliases": [
+    "identity and access management",
+    "IAM"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "MFA",
+   "category": "Security",
+   "aliases": [
+    "multi-factor authentication",
+    "two-factor authentication",
+    "2FA"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "SSO",
+   "category": "Security",
+   "aliases": [
+    "single sign-on"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Encryption",
+   "category": "Security",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Phishing analysis",
+   "category": "Security",
+   "aliases": [
+    "phishing"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Malware analysis",
+   "category": "Security",
+   "aliases": [
+    "malware"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "CrowdStrike Falcon",
+   "category": "Security",
+   "aliases": [
+    "CrowdStrike"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "SentinelOne",
+   "category": "Security",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Microsoft Defender",
+   "category": "Security",
+   "aliases": [
+    "Defender for Endpoint"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Microsoft Sentinel",
+   "category": "Security",
+   "aliases": [
+    "Azure Sentinel"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "IBM QRadar",
+   "category": "Security",
+   "aliases": [
+    "QRadar"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Okta",
+   "category": "Security",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Palo Alto Networks",
+   "category": "Security",
+   "aliases": [
+    "Palo Alto"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Fortinet",
+   "category": "Security",
+   "aliases": [
+    "FortiGate"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Burp Suite",
+   "category": "Security",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Metasploit",
+   "category": "Security",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Nmap",
+   "category": "Security",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Kali Linux",
+   "category": "Security",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Qualys",
+   "category": "Security",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Tenable",
+   "category": "Security",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "SOAR",
+   "category": "Security",
+   "aliases": [
+    "security orchestration"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "PostgreSQL",
+   "category": "Databases",
+   "aliases": [
+    "Postgres"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "MySQL",
+   "category": "Databases",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Microsoft SQL Server",
+   "category": "Databases",
+   "aliases": [
+    "SQL Server",
+    "MS SQL",
+    "MSSQL"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Oracle Database",
+   "category": "Databases",
+   "aliases": [
+    "Oracle"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "MongoDB",
+   "category": "Databases",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Redis",
+   "category": "Databases",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "SQLite",
+   "category": "Databases",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "DynamoDB",
+   "category": "Databases",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Snowflake",
+   "category": "Databases",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Elasticsearch",
+   "category": "Databases",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Docker",
+   "category": "DevOps & CI/CD",
+   "aliases": [
+    "containers",
+    "containerization"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Kubernetes",
+   "category": "DevOps & CI/CD",
+   "aliases": [
+    "K8s"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Terraform",
+   "category": "DevOps & CI/CD",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Ansible",
+   "category": "DevOps & CI/CD",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Jenkins",
+   "category": "DevOps & CI/CD",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "GitHub Actions",
+   "category": "DevOps & CI/CD",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "GitLab CI",
+   "category": "DevOps & CI/CD",
+   "aliases": [
+    "GitLab CI/CD"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "CI/CD",
+   "category": "DevOps & CI/CD",
+   "aliases": [
+    "continuous integration",
+    "continuous delivery",
+    "continuous deployment"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Git",
+   "category": "DevOps & CI/CD",
+   "aliases": [
+    "version control"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Helm",
+   "category": "DevOps & CI/CD",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Prometheus",
+   "category": "DevOps & CI/CD",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Grafana",
+   "category": "DevOps & CI/CD",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Infrastructure as Code",
+   "category": "DevOps & CI/CD",
+   "aliases": [
+    "IaC"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Microsoft Excel",
+   "category": "Data & Analytics",
+   "aliases": [
+    "Excel",
+    "spreadsheets"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Tableau",
+   "category": "Data & Analytics",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Power BI",
+   "category": "Data & Analytics",
+   "aliases": [
+    "PowerBI"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Looker",
+   "category": "Data & Analytics",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "ETL",
+   "category": "Data & Analytics",
+   "aliases": [
+    "data pipelines"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Data visualization",
+   "category": "Data & Analytics",
+   "aliases": [
+    "dashboards"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Statistics",
+   "category": "Data & Analytics",
+   "aliases": [
+    "statistical analysis"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Machine learning",
+   "category": "Data & Analytics",
+   "aliases": [
+    "ML"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "A/B testing",
+   "category": "Data & Analytics",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Active Directory",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "AD DS"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Group Policy",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "GPO",
+    "GPOs"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "ServiceNow",
+   "category": "IT Support & Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Jira",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "JIRA"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "ITIL",
+   "category": "IT Support & Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Help desk support",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "help desk",
+    "helpdesk",
+    "service desk"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Ticketing systems",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "ticketing system",
+    "ticketing"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Troubleshooting",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "troubleshoot",
+    "diagnose"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Hardware support",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "hardware troubleshooting",
+    "PC hardware",
+    "component replacement",
+    "memory/storage upgrades"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Microsoft Intune",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "Intune"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "SCCM",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "MECM",
+    "Configuration Manager"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Jamf",
+   "category": "IT Support & Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "VMware",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "vSphere",
+    "ESXi"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Hyper-V",
+   "category": "IT Support & Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Virtualization",
+   "category": "IT Support & Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Remote support",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "remote desktop",
+    "remote assistance"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Imaging and deployment",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "imaging",
+    "device provisioning"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Backup and recovery",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "backups",
+    "disaster recovery"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "RAID",
+   "category": "IT Support & Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Rack installation",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "rack and stack",
+    "server racking",
+    "equipment staging"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Data center operations",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "data center hardware",
+    "data center infrastructure",
+    "DCIM"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Change management",
+   "category": "IT Support & Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "SLA",
+   "category": "IT Support & Systems",
+   "aliases": [
+    "Service Level Agreements",
+    "service level agreement"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Incident escalation",
+   "category": "IT Support & Systems",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "REST APIs",
+   "category": "Software Practices",
+   "aliases": [
+    "REST",
+    "RESTful",
+    "RESTful APIs",
+    "APIs"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "GraphQL",
+   "category": "Software Practices",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Microservices",
+   "category": "Software Practices",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Unit testing",
+   "category": "Software Practices",
+   "aliases": [
+    "unit tests",
+    "automated testing",
+    "automated tests",
+    "test automation"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Test-driven development",
+   "category": "Software Practices",
+   "aliases": [
+    "TDD"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Agile",
+   "category": "Software Practices",
+   "aliases": [
+    "Agile methodologies"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Scrum",
+   "category": "Software Practices",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "Kanban",
+   "category": "Software Practices",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "SDLC",
+   "category": "Software Practices",
+   "aliases": [
+    "software development lifecycle"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Code review",
+   "category": "Software Practices",
+   "aliases": [
+    "code reviews"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Object-oriented programming",
+   "category": "Software Practices",
+   "aliases": [
+    "OOP"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Data structures and algorithms",
+   "category": "Software Practices",
+   "aliases": [
+    "data structures",
+    "algorithms"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "CompTIA A+",
+   "category": "Certifications",
+   "aliases": [
+    "A+ certification",
+    "A+"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "CompTIA Network+",
+   "category": "Certifications",
+   "aliases": [
+    "Network+"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "CompTIA Security+",
+   "category": "Certifications",
+   "aliases": [
+    "Security+",
+    "Sec+"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "CompTIA Server+",
+   "category": "Certifications",
+   "aliases": [
+    "Server+"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "CompTIA CySA+",
+   "category": "Certifications",
+   "aliases": [
+    "CySA+"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "CompTIA Linux+",
+   "category": "Certifications",
+   "aliases": [
+    "Linux+"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "CCNA",
+   "category": "Certifications",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "CCNP",
+   "category": "Certifications",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "CISSP",
+   "category": "Certifications",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "CISM",
+   "category": "Certifications",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "CEH",
+   "category": "Certifications",
+   "aliases": [
+    "Certified Ethical Hacker"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "GIAC certification",
+   "category": "Certifications",
+   "aliases": [
+    "GSEC",
+    "GCIH",
+    "GIAC"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "AWS Certified Solutions Architect",
+   "category": "Certifications",
+   "aliases": [
+    "AWS Solutions Architect"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "AWS Certified Cloud Practitioner",
+   "category": "Certifications",
+   "aliases": [
+    "AWS Cloud Practitioner"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Microsoft Azure Fundamentals",
+   "category": "Certifications",
+   "aliases": [
+    "AZ-900"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Microsoft Azure Administrator",
+   "category": "Certifications",
+   "aliases": [
+    "AZ-104"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "PMP",
+   "category": "Certifications",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "ITIL Foundation",
+   "category": "Certifications",
+   "aliases": [
+    "ITIL v4 Foundation",
+    "ITIL 4 Foundation"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Certified Kubernetes Administrator",
+   "category": "Certifications",
+   "aliases": [
+    "CKA"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "OSHA 10",
+   "category": "Certifications",
+   "aliases": [
+    "OSHA 10-Hour",
+    "OSHA 30"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Six Sigma Yellow Belt",
+   "category": "Certifications",
+   "aliases": [
+    "Six Sigma"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "HIPAA",
+   "category": "Compliance & Domain",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "PCI DSS",
+   "category": "Compliance & Domain",
+   "aliases": [
+    "PCI",
+    "PCI-DSS"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "GDPR",
+   "category": "Compliance & Domain",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "SOX",
+   "category": "Compliance & Domain",
+   "aliases": [
+    "Sarbanes-Oxley"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "FERPA",
+   "category": "Compliance & Domain",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "FedRAMP",
+   "category": "Compliance & Domain",
+   "aliases": [],
+   "case_sensitive": false
+  },
+  {
+   "name": "SOC 2",
+   "category": "Compliance & Domain",
+   "aliases": [
+    "SOC2"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Security clearance",
+   "category": "Compliance & Domain",
+   "aliases": [
+    "secret clearance",
+    "top secret clearance",
+    "TS/SCI",
+    "active clearance"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Communication",
+   "category": "Professional Skills",
+   "aliases": [
+    "communication skills",
+    "written and verbal communication",
+    "verbal and written communication",
+    "communicate clearly"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Customer service",
+   "category": "Professional Skills",
+   "aliases": [
+    "customer-facing",
+    "customer support",
+    "end-user support",
+    "end user support"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Teamwork",
+   "category": "Professional Skills",
+   "aliases": [
+    "collaboration",
+    "collaborate",
+    "team player"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Problem solving",
+   "category": "Professional Skills",
+   "aliases": [
+    "problem-solving",
+    "analytical skills",
+    "critical thinking"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Technical documentation",
+   "category": "Professional Skills",
+   "aliases": [
+    "documentation",
+    "document procedures",
+    "knowledge base"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Project management",
+   "category": "Professional Skills",
+   "aliases": [
+    "manage projects"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Time management",
+   "category": "Professional Skills",
+   "aliases": [
+    "prioritize",
+    "prioritization",
+    "multitask",
+    "multitasking"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Leadership",
+   "category": "Professional Skills",
+   "aliases": [
+    "lead a team",
+    "leading teams"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Attention to detail",
+   "category": "Professional Skills",
+   "aliases": [
+    "detail-oriented",
+    "detail oriented"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Mentoring",
+   "category": "Professional Skills",
+   "aliases": [
+    "mentor",
+    "coaching"
+   ],
+   "case_sensitive": false
+  },
+  {
+   "name": "Stakeholder management",
+   "category": "Professional Skills",
+   "aliases": [
+    "stakeholders"
+   ],
+   "case_sensitive": false
+  }
+ ]
+}

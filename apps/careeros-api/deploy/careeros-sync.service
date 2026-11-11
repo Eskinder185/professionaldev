@@ -1,0 +1,25 @@
+# /etc/systemd/system/careeros-sync.service  (run by careeros-sync.timer)
+[Unit]
+Description=CareerOS ATS status sync (read-only)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=careeros
+Group=careeros
+WorkingDirectory=/opt/careeros/apps/careeros-api
+# api.env: database + token. portals.env: CAREEROS_SECRET_<REF>_USERNAME / _PASSWORD. Both root-owned, mode 600.
+EnvironmentFile=/etc/careeros/api.env
+EnvironmentFile=/etc/careeros/portals.env
+Environment=CAREEROS_SESSION_DIR=/var/lib/careeros/sessions
+Environment=PLAYWRIGHT_BROWSERS_PATH=/opt/careeros/ms-playwright
+ExecStart=/opt/careeros/apps/careeros-api/.venv/bin/python -m jobs.sync_ats_status
+# Exit 1 (some accounts need attention) is expected sometimes; it is logged, not treated as a crash.
+SuccessExitStatus=1
+TimeoutStartSec=20min
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+StateDirectory=careeros
+StateDirectoryMode=0700

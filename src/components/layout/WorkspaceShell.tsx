@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Bell, FolderOpen, Heart, KanbanSquare, MoreHorizontal, BarChart3, BookOpen, ChevronLeft, ChevronRight, CircleHelp, Compass, FileText, FolderKanban, GraduationCap, LayoutDashboard, Menu, Plus, Search, Settings, Sparkles, Target, UserRound, X } from "lucide-react";
+import { Bell, FolderOpen, Heart, KanbanSquare, MoreHorizontal, BarChart3, BookOpen, ChevronLeft, ChevronRight, CircleHelp, Compass, FileText, FolderKanban, GraduationCap, LayoutDashboard, Menu, Plus, Radar, Search, Server, Settings, Sparkles, Target, UserRound, X } from "lucide-react";
 import ThemeToggle from "../ThemeToggle";
 import { getLocal, setLocal } from "../../hooks/useLocal";
 
@@ -22,7 +22,12 @@ const groups = [
   { title: "My Career", items: [
     { label: "Skills Profile", to: "/resources/trackers", icon: BookOpen },
     { label: "Portfolio", to: "/career-tools/portfolio", icon: FolderKanban },
+    { label: "Portfolio by role", to: "/portfolio", icon: Target },
     { label: "Career Analytics", to: "/analytics", icon: BarChart3 },
+  ] },
+  { title: "Home lab (optional)", items: [
+    { label: "Technical screen", to: "/lab/interview", icon: Server },
+    { label: "Skill-gap radar", to: "/lab/skill-gap", icon: Radar },
   ] },
   { title: "Assistance", items: [
     { label: "Career Coach", to: "/coach", icon: Compass },
